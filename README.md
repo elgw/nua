@@ -122,13 +122,14 @@ layers (which you would have to enable manually).
  - [ ] Proper Phong lighting
  - [ ] Zoom in / out using right mouse button.
  - [ ] build nucleard as shared object
- - [ ] command line argument to select projection type (orthographic or perspective)
  - [ ] Light intensity that depends on the distance to the eye.
  - [ ] Steal some ideas from chimera, especially look at their shaders in `UCSF-Chimera64-1.14/share/Shaders/`.
  - [ ] Read data from csv files.
  - [ ] Adopt viewport to data (currently only views a unit cube).
+ - [ ] FPS limiter, only update data/redraw every m ms.
 
 ### possibly
+ - [ ] animate / auto-rotate?
  - [ ] Switch to more refined bead model on zoom-in?
  - [ ] Improve GUI (right mouse button for zooming, explode view, etc ...)
  - [ ] Choose a library for image generation and text rendering,
