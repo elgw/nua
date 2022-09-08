@@ -85,11 +85,11 @@ vec4 fragNormal4 = (rot*vec4(fragNormal, 1.0));
 fragNormal4.w = 1;
 
 gl_Position = ubo.proj * ubo.view * ubo.model * npos;
-fragNormal4 = - ubo.model * fragNormal4;
-fragNormal = vec3(fragNormal4);
+fragNormal4 = ubo.model * fragNormal4;
+fragNormal = -vec3(fragNormal4);
 
 // Swap back to OpenGl way
-    gl_Position.y = -gl_Position.y;
+gl_Position.y = -gl_Position.y;
 
 //fragNormal = -vec3(ubo.model * vec4(fragNormal, 1.0));    
 

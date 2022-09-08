@@ -419,18 +419,23 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
     //rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
 
     rasterizer.lineWidth = 1.0f;
-    //rasterizer.cullMode = VK_CULL_MODE_NONE;
 
-    rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
+
+    if(v->vtype == VERTEX_DOMAIN)
+    {
+        rasterizer.cullMode = VK_CULL_MODE_NONE;;
+    }
+
     if(v->vtype == VERTEX_BALL)
     {
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizer.cullMode = VK_CULL_MODE_NONE;
     }
+
     if(v->vtype == VERTEX_CONNECT)
     {
-        rasterizer.cullMode = VK_CULL_MODE_NONE;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     }
+
     rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
     rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -906,7 +911,7 @@ void vertex_create_texture_image(nua_t * p, vertex_t * v)
     {
         printf("->create_texture_image\n");
     }
-    char imfile[] = "textures/texture.jpg";
+    char imfile[] = "textures/texture.png";
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(imfile,
                                 &texWidth, &texHeight, &texChannels,

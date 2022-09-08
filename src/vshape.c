@@ -160,7 +160,7 @@ vshape_t * vshape_tube(float r, float l, int sides)
     {
         float * V = S->vert + 6*ss;
         float theta = (float) ss/(float) sides * 2.0*M_PI;
-        V[0] = r*sin(theta); V[1] = r*cos(theta); V[2] = l;
+        V[0] = r*cos(theta); V[1] = r*sin(theta); V[2] = l;
         V[3] = V[0]; V[4] = V[1]; V[5] = 0;
     }
     return S;

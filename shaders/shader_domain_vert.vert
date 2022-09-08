@@ -15,6 +15,7 @@ layout(location = 3) in float instance_radius;
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 texCoord;
+layout(location = 3) out vec3 fragPos;
 
 // use
 // gl_InstanceIndex
@@ -33,7 +34,9 @@ void main() {
      gl_Position = ubo.proj * ubo.view * ubo.model * vec4(pos, 1.0);
 // Swap back to OpenGl way
     gl_Position.y = -gl_Position.y;
-    
+
+    fragPos = inPosition;
+
     fragNormal = vec3(ubo.model * vec4(fragNormal, 1.0));    
        
     fragColor = instance_color;
