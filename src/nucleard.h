@@ -89,6 +89,10 @@ typedef struct prog {
     vertex_t * links;
     vertex_t * domain;
 
+    int show_domain;
+    int show_links;
+    int show_beads;
+
     struct timespec time_start;
 
     size_t n_allocate_memory;

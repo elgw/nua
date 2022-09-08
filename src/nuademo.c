@@ -471,7 +471,10 @@ void nua_demo_ui(SDL_Event e, void *data)
         {
             if(nuad->brown == 0)
             {
-                printf("Main: signaling worker to start\n");
+                if(nuad->verbose > 1)
+                {
+                    printf("Main: signaling worker to start\n");
+                }
                 pthread_cond_signal(&nuad->worker_cond);
             }
             nuad->brown *= 1.5;

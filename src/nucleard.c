@@ -228,7 +228,12 @@ nua_t * nua_new()
     p->pause = 0;
     p->spherediv = 2;
     p->linkdiv = 5;
+
     p->proj_ortho = 1;
+
+    p->show_domain = 1;
+    p->show_beads = 1;
+    p->show_links = 1;
 
     /* Vulkan settings */
     p->msaaSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -258,11 +263,13 @@ nua_t * nua_new()
 
 void nua_show_usage(UNUSED nua_t * p)
 {
-    printf("User interface:\n");
-    printf("      <q>  quit\n");
-    printf("      <t>  zoom in\n");
-    printf("      <g>  zoom out\n");
-    printf("    <F11>  toggle fullscreen\n");
+    printf(
+        " User interface:\n"
+        "      <q>  quit                       <F11>  toggle fullscreen    \n"
+        "      <t>  zoom in                     <g>  zoom out              \n"
+        "      <1>  show/hide domain            <2>  show/hide links       \n"
+        "      <3>  show/hide beads                                        \n"
+        "      <0>  toggle projection type                                 \n");
     return;
 }
 
@@ -1270,12 +1277,19 @@ void record_command_buffer(nua_t * p, uint32_t imageIndex)
     scissor.extent = p->swap_conf.extent;
     vkCmdSetScissor(p->commandBuffers[p->current_frame], 0, 1, &scissor);
 
-    /* Draw domain */
-    vertex_record_command_buffer(p, p->domain);
-    /* Draw spheres */
-    vertex_record_command_buffer(p, p->balls);
-    /* Draw connectors */
-    vertex_record_command_buffer(p, p->links);
+
+    if(p->show_domain)
+    {
+        vertex_record_command_buffer(p, p->domain);
+    }
+    if(p->show_beads)
+    {
+        vertex_record_command_buffer(p, p->balls);
+    }
+    if(p->show_links)
+    {
+        vertex_record_command_buffer(p, p->links);
+    }
 
     vkCmdEndRenderPass(p->commandBuffers[p->current_frame]);
 
@@ -1564,17 +1578,25 @@ void handle_SDL_event(nua_t * p,  SDL_Event e)
     {
         // https://wiki.libsdl.org/SDL_Scancode
         char keyDown = e.key.keysym.scancode;
-        if(keyDown == SDL_SCANCODE_SPACE)
+        if(keyDown == SDL_SCANCODE_1)
         {
-            p->pause = (p->pause + 1) % 2;
+            p->show_domain = (p->show_domain + 1) % 2;
+        }
+        if(keyDown == SDL_SCANCODE_2)
+        {
+            p->show_links = (p->show_links + 1) % 2;
+        }
+        if(keyDown == SDL_SCANCODE_3)
+        {
+            p->show_beads = (p->show_beads + 1) % 2;
         }
         if(keyDown == SDL_SCANCODE_0)
         {
-            SDL_SetWindowSize(p->window, 256, 256);
+            p->proj_ortho = (p->proj_ortho + 1) % 2;
         }
-        if(keyDown == SDL_SCANCODE_1)
+        if(keyDown == SDL_SCANCODE_SPACE)
         {
-            SDL_SetWindowSize(p->window, 4*256, 4*256);
+            p->pause = (p->pause + 1) % 2;
         }
         if(keyDown == SDL_SCANCODE_Q || keyDown == SDL_SCANCODE_ESCAPE)
         {
@@ -1658,8 +1680,6 @@ void nua_main_loop(nua_t * p)
             nua_redraw(p);
             p->data_changed = 0;
         }
-
-
 
         draw_frame(p);
         p->nframes++;
