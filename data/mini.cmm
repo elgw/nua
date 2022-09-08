@@ -1,0 +1,17 @@
+<marker_set name="marker set 1">
+<marker id="1" x="0" y="0" z="0"  radius="0.035217"/>
+
+<marker id="2" x="0.9" y="0.16277" z="-0.30339" r="1" g="0" b="0"
+radius="0.05" note="An example note"/>
+
+<marker id="3" x="0.025395" y="0.8277" z="-0.010339" r="0" g="1" b="0"
+radius="0.05" note="An example note"/>
+
+<marker id="4" x="0.00395" y="0.0077" z="0.80339" r="0" g="0" b="1"
+radius="0.05" />
+
+<link id1="1" id2="2" r="1" g="1" b="0" radius="0.017609"/>
+<link id1="1" id2="3" r="1" g="1" b="0" radius="0.015"/>
+<link id1="1" id2="4" r="1" g="1" b="0" radius="0.015"/>
+
+</marker_set>
