@@ -2,9 +2,9 @@
 
 
 <p align="middle">
-  <img src="screenshot1.png" width="30%" />
-  <img src="screenshot2.png" width="30%" />
-  <img src="screenshot3.png" width="30%" />
+  <img src="screenshot1.png" width="25%" />
+  <img src="screenshot2.png" width="40%" />
+  <img src="screenshot3.png" width="25%" />
 </p>
 
 
