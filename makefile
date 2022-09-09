@@ -37,13 +37,17 @@ LDFLAGS+=-lm
 CFLAGS+=`pkg-config stb --cflags`
 LDFLAGS+=`pkg-config stb --libs`
 
-nuademo: src/nuademo.c src/nuademo.h nucleard.o vshape.o cmm_io.o vertex.o nua_util.o nucleard.o
-	$(CC) $(CFLAGS) src/nuademo.c nucleard.o vshape.o cmm_io.o vertex.o nua_util.o $(LDFLAGS) -o nuademo
+
+nuademo: src/nuademo.c src/nuademo.h nucleard.o vshape.o cmm_io.o vertex.o nua_util.o nucleard.o nua_vkutil.o
+	$(CC) $(CFLAGS) src/nuademo.c nucleard.o vshape.o cmm_io.o vertex.o nua_util.o nua_vkutil.o $(LDFLAGS) -o nuademo
 
 
 FILES=src/nucleard.c src/nucleard.h
 nucleard.o: $(FILES)  shaders
 	$(CC) -c $(CFLAGS) $(FILES)
+
+nua_vkutil.o: src/nua_vkutil.c src/nua_vkutil.h
+	$(CC) -c $(CFLAGS) src/nua_vkutil.c
 
 vshape.o: src/vshape.c src/vshape.h
 	$(CC) -c $(CFLAGS) src/vshape.c

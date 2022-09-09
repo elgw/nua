@@ -21,6 +21,7 @@
 #include "cmm_io.h"
 #include "vertex.h"
 #include "nua_util.h"
+#include "nua_vkutil.h"
 
 struct vertex;
 typedef struct vertex vertex_t;

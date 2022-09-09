@@ -8,138 +8,6 @@
 
 #define UNUSED __attribute__((unused))
 
-void print_VK_result(VkResult r)
-{
-    switch(r)
-    {
-    case VK_SUCCESS:
-        printf("VK_SUCCESS\n");
-        break;
-        /*
-    VK_NOT_READY = 1,
-    VK_TIMEOUT = 2,
-    VK_EVENT_SET = 3,
-    VK_EVENT_RESET = 4,
-    VK_INCOMPLETE = 5,
-        */
-    case VK_ERROR_OUT_OF_HOST_MEMORY:
-        printf("VK_ERROR_OUT_OF_HOST_MEMORY\n");
-        break;
-    case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-        printf("VK_ERROR_OUT_OF_DEVICE_MEMORY\n");
-        break;
-    case VK_ERROR_INITIALIZATION_FAILED:
-        printf("VK_ERROR_INITIALIZATION_FAILED\n");
-        break;
-    case VK_ERROR_DEVICE_LOST:
-        printf("VK_ERROR_DEVICE_LOST\n");
-        break;
-        /*
-    VK_ERROR_MEMORY_MAP_FAILED = -5,
-    VK_ERROR_LAYER_NOT_PRESENT = -6,
-    VK_ERROR_EXTENSION_NOT_PRESENT = -7,
-    VK_ERROR_FEATURE_NOT_PRESENT = -8,
-    VK_ERROR_INCOMPATIBLE_DRIVER = -9,
-    VK_ERROR_TOO_MANY_OBJECTS = -10,
-    VK_ERROR_FORMAT_NOT_SUPPORTED = -11,
-    VK_ERROR_FRAGMENTED_POOL = -12,
-    VK_ERROR_UNKNOWN = -13,
-  // Provided by VK_VERSION_1_1
-    VK_ERROR_OUT_OF_POOL_MEMORY = -1000069000,
-  // Provided by VK_VERSION_1_1
-    VK_ERROR_INVALID_EXTERNAL_HANDLE = -1000072003,
-  // Provided by VK_VERSION_1_2
-    VK_ERROR_FRAGMENTATION = -1000161000,
-  // Provided by VK_VERSION_1_2
-    VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS = -1000257000,
-  // Provided by VK_VERSION_1_3
-    VK_PIPELINE_COMPILE_REQUIRED = 1000297000,
-  // Provided by VK_KHR_surface
-  */
-    case VK_ERROR_SURFACE_LOST_KHR:
-        printf("VK_ERROR_SURFACE_LOST_KHR\n");
-        break;
-    case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
-        printf("VK_ERROR_NATIVE_WINDOW_IN_USE_KHR\n");
-        break;
-    case VK_SUBOPTIMAL_KHR:
-        printf("VK_SUBOPTIMAL_KHR\n");
-        break;
-    case VK_ERROR_OUT_OF_DATE_KHR:
-        printf("VK_ERROR_OUT_OF_DATE_KHR");
-        break;
-        /*
-    VK_ERROR_INCOMPATIBLE_DISPLAY_KHR = -1000003001,
-  // Provided by VK_EXT_debug_report
-    VK_ERROR_VALIDATION_FAILED_EXT = -1000011001,
-  // Provided by VK_NV_glsl_shader
-    VK_ERROR_INVALID_SHADER_NV = -1000012000,
-#ifdef VK_ENABLE_BETA_EXTENSIONS
-  // Provided by VK_KHR_video_queue
-    VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR = -1000023000,
-#endif
-#ifdef VK_ENABLE_BETA_EXTENSIONS
-  // Provided by VK_KHR_video_queue
-    VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR = -1000023001,
-#endif
-#ifdef VK_ENABLE_BETA_EXTENSIONS
-  // Provided by VK_KHR_video_queue
-    VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR = -1000023002,
-#endif
-#ifdef VK_ENABLE_BETA_EXTENSIONS
-  // Provided by VK_KHR_video_queue
-    VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR = -1000023003,
-#endif
-#ifdef VK_ENABLE_BETA_EXTENSIONS
-  // Provided by VK_KHR_video_queue
-    VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR = -1000023004,
-#endif
-#ifdef VK_ENABLE_BETA_EXTENSIONS
-  // Provided by VK_KHR_video_queue
-    VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR = -1000023005,
-#endif
-  // Provided by VK_EXT_image_drm_format_modifier
-    VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT = -1000158000,
-  // Provided by VK_KHR_global_priority
-    VK_ERROR_NOT_PERMITTED_KHR = -1000174001,
-  // Provided by VK_EXT_full_screen_exclusive
-    VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT = -1000255000,
-  // Provided by VK_KHR_deferred_host_operations
-    VK_THREAD_IDLE_KHR = 1000268000,
-  // Provided by VK_KHR_deferred_host_operations
-    VK_THREAD_DONE_KHR = 1000268001,
-  // Provided by VK_KHR_deferred_host_operations
-    VK_OPERATION_DEFERRED_KHR = 1000268002,
-  // Provided by VK_KHR_deferred_host_operations
-    VK_OPERATION_NOT_DEFERRED_KHR = 1000268003,
-  // Provided by VK_EXT_image_compression_control
-  */
-    case VK_ERROR_COMPRESSION_EXHAUSTED_EXT:
-        printf("VK_ERROR_COMPRESSION_EXHAUSTED_EXT\n");
-        break;
-    case VK_ERROR_OUT_OF_POOL_MEMORY_KHR:
-        printf("VK_ERROR_OUT_OF_POOL_MEMORY_KHR = VK_ERROR_OUT_OF_POOL_MEMORY\n");
-        break;
-        /*
-    VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = VK_ERROR_INVALID_EXTERNAL_HANDLE,
-  // Provided by VK_EXT_descriptor_indexing
-    VK_ERROR_FRAGMENTATION_EXT = VK_ERROR_FRAGMENTATION,
-  // Provided by VK_EXT_global_priority
-    VK_ERROR_NOT_PERMITTED_EXT = VK_ERROR_NOT_PERMITTED_KHR,
-  // Provided by VK_EXT_buffer_device_address
-    VK_ERROR_INVALID_DEVICE_ADDRESS_EXT = VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS,
-  // Provided by VK_KHR_buffer_device_address
-    VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS_KHR = VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS,
-  // Provided by VK_EXT_pipeline_creation_cache_control
-    VK_PIPELINE_COMPILE_REQUIRED_EXT = VK_PIPELINE_COMPILE_REQUIRED,
-  // Provided by VK_EXT_pipeline_creation_cache_control
-    VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT = VK_PIPELINE_COMPILE_REQUIRED,
-        */
-    default:
-        printf("Error code %d not described by print_VK_result\n", r);
-    }
-    return;
-}
 
 VkSampleCountFlagBits getMaxUsableSampleCount(nua_t *p)
 {
@@ -264,12 +132,12 @@ nua_t * nua_new()
 void nua_show_usage(UNUSED nua_t * p)
 {
     printf(
-        " User interface:\n"
-        "      <q>  quit                       <F11>  toggle fullscreen    \n"
-        "      <t>  zoom in                     <g>  zoom out              \n"
-        "      <1>  show/hide domain            <2>  show/hide links       \n"
-        "      <3>  show/hide beads                                        \n"
-        "      <0>  toggle projection type                                 \n");
+           " User interface:\n"
+           "      <q>  quit                       <F11>  toggle fullscreen    \n"
+           "      <t>  zoom in                     <g>  zoom out              \n"
+           "      <1>  show/hide domain            <2>  show/hide links       \n"
+           "      <3>  show/hide beads                                        \n"
+           "      <0>  toggle projection type                                 \n");
     return;
 }
 
@@ -673,23 +541,7 @@ void query_VK_SwapChainSupport(nua_t * p)
         printf("-> %u surface present modes supported:\n", presentModeCount);
         for(uint32_t kk = 0; kk < presentModeCount; kk++)
         {
-            switch(modes[kk])
-            {
-            case VK_PRESENT_MODE_IMMEDIATE_KHR:
-                printf("VK_PRESENT_MODE_IMMEDIATE_KHR\n");
-                break;
-            case VK_PRESENT_MODE_MAILBOX_KHR:
-                printf("VK_PRESENT_MODE_MAILBOX_KHR\n");
-                break;
-            case VK_PRESENT_MODE_FIFO_KHR:
-                printf("VK_PRESENT_MODE_FIFO_KHR\n");
-                break;
-            case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
-                printf("VK_PRESENT_MODE_FIFO_RELAXED_KHR\n");
-                break;
-            default:
-                printf("Other present mode\n");
-            }
+            print_VkPresentModeKHR(modes[kk]);
         }
     }
     free(modes);
@@ -808,12 +660,12 @@ int create_swap_chain(nua_t * p)
 
     if(status != VK_SUCCESS)
     {
+        /* This is expected sometimes and not fatal */
         if(status == VK_ERROR_INITIALIZATION_FAILED)
         {
-            print_VK_result(status);
+            print_VkResult(status);
             return EXIT_FAILURE;
         }
-
         exit(EXIT_FAILURE);
     }
 
@@ -1513,12 +1365,12 @@ void draw_frame(nua_t * p)
         p->framebuffer_resized = 1;
         return;
     }
-   if (result != VK_SUCCESS) {
+    if (result != VK_SUCCESS) {
         fprintf(stderr, "failed to present swap chain image!");
     }
 
 
-fail: ;
+ fail: ;
     p->current_frame = (p->current_frame + 1) % p->frames_in_flight;
 }
 
@@ -1902,13 +1754,13 @@ void transition_image_layout(nua_t * p,
     }
 
     vkCmdPipelineBarrier(
-        commandBuffer,
-        sourceStage, destinationStage,
-        0,
-        0, NULL,
-        0, NULL,
-        1, &barrier
-        );
+                         commandBuffer,
+                         sourceStage, destinationStage,
+                         0,
+                         0, NULL,
+                         0, NULL,
+                         1, &barrier
+                         );
 
     end_single_time_commands(p, commandBuffer);
 }
@@ -1940,13 +1792,13 @@ void copy_buffer_to_image(nua_t * p,
 
 
     vkCmdCopyBufferToImage(
-        commandBuffer,
-        buffer,
-        image,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region
-        );
+                           commandBuffer,
+                           buffer,
+                           image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           1,
+                           &region
+                           );
 
     end_single_time_commands(p, commandBuffer);
 }
