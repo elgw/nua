@@ -491,11 +491,7 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
         vkCreatePipelineLayout(p->vkDevice,
                                &pipelineLayoutInfo,
                                NULL, &v->pipelineLayout);
-    if(status != VK_SUCCESS)
-    {
-        printf("Failed to create vkPipelineLayout\b");
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
 
     VkPipelineDepthStencilStateCreateInfo depthStencil = {};
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -542,16 +538,14 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
                                        &pipelineInfo,
                                        NULL,
                                        &v->graphicsPipeline);
-    if(status != VK_SUCCESS) {
-        printf("failed to create graphics pipeline!");
-        exit(EXIT_FAILURE);
-    } else {
+    require_VK_SUCCESS(status);
+
         if(p->verbose > 1)
         {
             printf("Graphics pipeline created\n");
         }
         assert(v->graphicsPipeline != NULL);
-    }
+
 
     free(shaderStages);
     free(dynamicStates);
@@ -793,14 +787,11 @@ void vertex_create_descriptor_set_layout(nua_t * p, vertex_t * v)
     layoutInfo.pBindings = bindings;
 
 
-    if (vkCreateDescriptorSetLayout(p->vkDevice,
+    VkResult result = vkCreateDescriptorSetLayout(p->vkDevice,
                                     &layoutInfo,
                                     NULL,
-                                    &v->descriptorSetLayout) != VK_SUCCESS)
-    {
-        fprintf(stderr, "failed to create descriptor set layout!");
-        exit(EXIT_FAILURE);
-    }
+                                                  &v->descriptorSetLayout);
+    require_VK_SUCCESS(result);
     free(bindings);
 }
 
@@ -832,9 +823,8 @@ void vertex_create_descriptor_sets(nua_t * p, vertex_t * v)
     {
         printf("Allocating %d descriptorSets\n", allocInfo.descriptorSetCount);
     }
-    if (vkAllocateDescriptorSets(p->vkDevice, &allocInfo, v->descriptorSets) != VK_SUCCESS) {
-        fprintf(stderr, "failed to allocate descriptor sets!");
-    }
+    VkResult result = vkAllocateDescriptorSets(p->vkDevice, &allocInfo, v->descriptorSets);
+    require_VK_SUCCESS(result);
 
     if(p->verbose > 2)
     {
@@ -1031,10 +1021,11 @@ void vertex_create_texture_sampler(nua_t * p, vertex_t * v)
     samplerInfo.mipLodBias = 0.0f;
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = 0.0f;
-    if (vkCreateSampler(p->vkDevice, &samplerInfo, NULL, &v->textureSampler) != VK_SUCCESS) {
-        fprintf(stderr, "failed to create texture sampler on line %d\n",
-                __LINE__);
-    }
+    VkResult result = vkCreateSampler(p->vkDevice,
+                                      &samplerInfo,
+                                      NULL,
+                                      &v->textureSampler);
+    require_VK_SUCCESS(result);
     return;
 }
 
@@ -1056,9 +1047,11 @@ void vertex_create_descriptor_pool(nua_t * p, vertex_t * v)
     poolInfo.pPoolSizes = poolSize;
     poolInfo.maxSets = (uint32_t) p->frames_in_flight;
 
-    if (vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool) != VK_SUCCESS) {
-        fprintf(stderr, "failed to create descriptor pool!");
-    }
+    VkResult result = vkCreateDescriptorPool(p->vkDevice,
+                                             &poolInfo,
+                                             NULL,
+                                             &v->descriptorPool);
+    require_VK_SUCCESS(result);
     free(poolSize);
 #else
     VkDescriptorPoolSize poolSize = {};
@@ -1070,9 +1063,8 @@ void vertex_create_descriptor_pool(nua_t * p, vertex_t * v)
     poolInfo.poolSizeCount = 1;
     poolInfo.pPoolSizes = &poolSize;
     poolInfo.maxSets = p->frames_in_flight;
-    if (vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool) != VK_SUCCESS) {
-        fprintf(stderr, "failed to create descriptor pool!");
-    }
+    VkResult result = vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool);
+    require_VK_SUCCESS(result);
 #endif
     return;
 }
