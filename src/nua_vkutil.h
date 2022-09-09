@@ -24,5 +24,24 @@ void print_VkResult(VkResult r);
 
 
 void print_VkPresentModeKHR(VkPresentModeKHR mode);
+void print_VkSampleCountFlagBits(VkSampleCountFlagBits bits);
 
+/* Return the highest VK_SAMPLE_COUNT_X_BIT supported by the device */
+VkSampleCountFlagBits get_max_usable_sample_count(VkPhysicalDevice);
+
+void create_buffer(VkPhysicalDevice pdev,
+                   VkDevice dev,
+                   VkDeviceSize size,
+                   VkBufferUsageFlags usage,
+                   VkMemoryPropertyFlags properties,
+                   VkBuffer * buffer,
+                   VkDeviceMemory * bufferMemory);
+
+uint32_t find_memory_type(VkPhysicalDevice dev,
+                          uint32_t typeFilter,
+                          VkMemoryPropertyFlags properties);
+
+VkShaderModule load_shader(VkDevice dev,
+                           const char * file,
+                           int verbose);
 #endif

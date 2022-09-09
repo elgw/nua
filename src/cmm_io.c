@@ -1,5 +1,190 @@
 #include "cmm_io.h"
 
+static void parse_link2(xmlTextReaderPtr r, cmm_link_t * l)
+{
+    memset(l, 0, sizeof(cmm_link_t));
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "id1");
+        assert(val != NULL);
+        l->id1 = atol((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "id2");
+        assert(val != NULL);
+        l->id2 = atol((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "r");
+        assert(val != NULL);
+        l->R = atof((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "g");
+        assert(val != NULL);
+        l->G = atof((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "b");
+        assert(val != NULL);
+        l->B = atof((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "radius");
+        assert(val != NULL);
+        l->radius = atof((const char*) val);
+        xmlFree(val);
+    }
+
+}
+
+static void parse_marker2(xmlTextReaderPtr r, cmm_marker_t * m)
+{
+    memset(m, 0, sizeof(cmm_marker_t));
+    /* Default color: white (as in chimera) */
+    m->R = 1; m->G = 1; m->B = 1;
+
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "id");
+        assert(val != NULL);
+        m->id = atol((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "x");
+        assert(val != NULL);
+        m->x = atof((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "y");
+        assert(val != NULL);
+        m->y = atof((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "z");
+        assert(val != NULL);
+        m->z = atof((const char*) val);
+        xmlFree(val);
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "r");
+        if(val != NULL)
+        {
+            m->R = atof((const char*) val);
+            xmlFree(val);
+        }
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "g");
+        if(val != NULL)
+        {
+            m->G = atof((const char*) val);
+            xmlFree(val);
+        }
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "b");
+        if(val != NULL){
+            m->B = atof((const char*) val);
+            xmlFree(val);
+        }
+    }
+    {
+        xmlChar * val = xmlTextReaderGetAttribute(r, (xmlChar *) "radius");
+        if(val != NULL){
+            m->radius = atof((const char*) val);
+            xmlFree(val);
+        }
+    }
+    return;
+}
+
+
+cmm_data_t * cmm_read(char * file)
+{
+    cmm_data_t * cmm = NULL;
+    int ret;
+    xmlTextReaderPtr reader;
+
+    //doc = xmlParseFile(file);
+    reader = xmlNewTextReaderFilename(file);
+    if (reader == NULL )
+    {
+        fprintf(stderr,"Document not parsed successfully. \n");
+        return cmm;
+    }
+
+    size_t nmarkers = 0;
+    size_t nlinks = 0;
+
+    size_t nmarkers_alloc = 1000;
+    size_t nlinks_alloc = 1000;
+    cmm = malloc(sizeof(cmm_data_t));
+    cmm->markers = malloc(nmarkers_alloc * sizeof(cmm_marker_t));
+    cmm->links = malloc(nlinks_alloc * sizeof(cmm_link_t));
+
+    ret = xmlTextReaderRead(reader);
+    while (ret == 1) {
+        const xmlChar * name = xmlTextReaderConstName(reader);
+        if (strcmp((char*) name, "marker") == 0)
+        {
+            if(nmarkers+1 == nmarkers_alloc)
+            {
+                nmarkers_alloc = 1.2*nmarkers_alloc;
+                cmm->markers = realloc(cmm->markers, nmarkers_alloc*sizeof(cmm_marker_t));
+            }
+            //xmlNodePtr cur;
+            parse_marker2(reader, cmm->markers+nmarkers);
+            nmarkers++;
+        }
+        else if (strcmp((char*) name, "link") == 0)
+        {
+            if(nlinks+1 == nlinks_alloc)
+            {
+                nlinks_alloc = 1.2*nlinks_alloc;
+                cmm->links = realloc(cmm->links, nlinks_alloc*sizeof(cmm_link_t));
+            }
+            parse_link2(reader, cmm->links+nlinks);
+            nlinks++;
+        }
+
+        ret = xmlTextReaderRead(reader);
+    }
+    xmlFreeTextReader(reader);
+    if (ret != 0) {
+        printf("%s : failed to parse\n", file);
+    }
+
+    printf("Found %zu markers and %zu links\n", nmarkers, nlinks);
+
+    cmm->n_markers = nmarkers;
+
+    if(nmarkers == 0)
+    {
+        free(cmm->markers);
+        cmm->markers = NULL;
+    } else {
+        cmm->markers = realloc(cmm->markers, cmm->n_markers*sizeof(cmm_marker_t));
+    }
+
+    cmm->n_links = nlinks;
+    if(nlinks == 0)
+    {
+        free(cmm->links);
+        cmm->links = NULL;
+    } else {
+        cmm->links = realloc(cmm->links, cmm->n_links*sizeof(cmm_link_t));
+    }
+
+    return cmm;
+}
+
 
 static void parse_link(xmlNodePtr cur, cmm_link_t * l)
 {
@@ -50,6 +235,7 @@ static void parse_link(xmlNodePtr cur, cmm_link_t * l)
     }
     return;
 }
+
 
 static void parse_marker(xmlNodePtr cur, cmm_marker_t * m)
 {
@@ -113,12 +299,13 @@ static void parse_marker(xmlNodePtr cur, cmm_marker_t * m)
     return;
 }
 
-cmm_data_t * cmm_read(char * file)
+cmm_data_t * cmm_read_parser(char * file)
 {
     cmm_data_t * cmm = NULL;
 
     xmlDocPtr doc;
     xmlNodePtr cur;
+
     doc = xmlParseFile(file);
     if (doc == NULL )
     {

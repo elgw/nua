@@ -1,7 +1,7 @@
-#ifndef __vertex_h__
-#define __vertex_h__
+#ifndef __nua_object_h__
+#define __nua_object_h__
 
-#include "nucleard.h"
+#include "nua.h"
 
 /* For storing all vertices
  * Vertices: (3+3) x n  x,y,z,R,G,B

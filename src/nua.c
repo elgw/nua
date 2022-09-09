@@ -4,29 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "nucleard.h"
+#include "nua.h"
 
 #define UNUSED __attribute__((unused))
 
-
-VkSampleCountFlagBits getMaxUsableSampleCount(nua_t *p)
-{
-    VkPhysicalDeviceProperties physicalDeviceProperties;
-    vkGetPhysicalDeviceProperties(p->vkPDevice, &physicalDeviceProperties);
-
-    VkSampleCountFlags counts =
-        physicalDeviceProperties.limits.framebufferColorSampleCounts
-        & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
-
-    return VK_SAMPLE_COUNT_1_BIT;
-}
 
 void nua_setup_graphics(nua_t * p)
 {
@@ -39,6 +20,13 @@ void nua_setup_graphics(nua_t * p)
 
 void nua_run(nua_t * p)
 {
+    if(p->msaaSamples == VK_SAMPLE_COUNT_1_BIT)
+    {
+        nua_fixme;
+        printf("Warning: need to have at least 2-but MSAA\n");
+        p->msaaSamples = VK_SAMPLE_COUNT_2_BIT;
+    }
+
     nua_setup_graphics(p);
     nua_show_usage(p);
 
@@ -181,7 +169,7 @@ void setup_VK_physical_device(nua_t * p)
     }
     fflush(stdout);
     p->vkPDevice = devices[device_selected];
-    p->msaaSamples = getMaxUsableSampleCount(p);
+    //p->msaaSamples = get_max_usable_sample_count(p->vkPDevice);
     free(devices);
     return;
 }
@@ -782,54 +770,18 @@ void get_VK_graphics_queue(nua_t * p)
 }
 
 
-VkShaderModule loadShader(nua_t * p, const char * file)
-{
-    if(p->verbose > 1)
-    {
-        printf("loadShader: trying to open %s\n", file);
-    }
-    FILE * fid = fopen(file, "r");
-    if(fid == NULL)
-    {
-        fprintf(stderr, "! Error\nFailed to open the shader file %s. "
-                "The shader should be in spv format.\n",
-                file);
-        exit(EXIT_FAILURE);
-    }
 
-    fseek(fid, 0, SEEK_END);
-    long fsize = ftell(fid);
-    fseek(fid, 0, SEEK_SET);
-
-    size_t buff_size = fsize +1;
-    uint32_t * buffer = calloc(buff_size, 1);
-    assert(fsize % 4 == 0);
-    size_t codesize = fread(buffer, 4, fsize/4, fid);
-    if(p->verbose > 2)
-    {
-        printf("Read %zu bytes\n", codesize*4);
-    }
-    assert(codesize < buff_size);
-    fclose(fid);
-    VkShaderModuleCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = codesize*4;
-    createInfo.pCode = buffer;
-    VkShaderModule shaderModule;
-    int status = vkCreateShaderModule(p->vkDevice,
-                                      &createInfo,
-                                      NULL,
-                                      &shaderModule);
-    require_VK_SUCCESS(status);
-
-    free(buffer);
-    return shaderModule;
-}
 
 
 
 void create_render_pass(nua_t * p)
 {
+    if(p->verbose > 1)
+    {
+        printf("Creating a render pass. msaaSamples: ");
+        print_VkSampleCountFlagBits(p->msaaSamples);
+    }
+
     VkAttachmentDescription depthAttachment = {};
     depthAttachment.format = VK_FORMAT_D32_SFLOAT; // TODO dynamic
     depthAttachment.samples = p->msaaSamples; //  VK_SAMPLE_COUNT_1_BIT;
@@ -878,7 +830,8 @@ void create_render_pass(nua_t * p)
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
-    subpass.pDepthStencilAttachment = &depthAttachmentRef; // For depth buffer
+
+        subpass.pDepthStencilAttachment = &depthAttachmentRef; // For depth buffer
     subpass.pResolveAttachments = &colorAttachmentResolveRef; // For MSAA
 
     VkSubpassDependency dependency = {};
@@ -1040,11 +993,6 @@ void record_command_buffer(nua_t * p, uint32_t imageIndex)
 
     int status = vkBeginCommandBuffer(p->commandBuffers[p->current_frame], &beginInfo);
     require_VK_SUCCESS(status);
-
-
-
-    //printf("->vkCmdBindVertexBuffers\n");
-
 
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1585,26 +1533,6 @@ void recreate_swap_chain(nua_t * p)
 }
 
 
-uint32_t findMemoryType(nua_t * p,
-                        uint32_t typeFilter,
-                        VkMemoryPropertyFlags properties)
-{
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(p->vkPDevice,
-                                        &memProperties);
-    // What is this? TODO understand
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) &&
-            (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-        {
-            return i;
-        }
-    }
-
-    fprintf(stderr, "failed to find a suitable memory type\n");
-    exit(EXIT_FAILURE);
-    return 0;
-}
 
 VkCommandBuffer begin_single_time_commands(nua_t * p)
 {
@@ -1641,7 +1569,7 @@ void end_single_time_commands(nua_t * p, VkCommandBuffer commandBuffer)
     return;
 }
 
-void copyBuffer(nua_t * p,
+void copy_buffer(nua_t * p,
                 VkBuffer srcBuffer,
                 VkBuffer dstBuffer,
                 VkDeviceSize size)
@@ -1757,48 +1685,6 @@ void copy_buffer_to_image(nua_t * p,
 
 
 
-void createBuffer(nua_t * p,
-                  VkDeviceSize size,
-                  VkBufferUsageFlags usage,
-                  VkMemoryPropertyFlags properties,
-                  VkBuffer * buffer,
-                  VkDeviceMemory * bufferMemory)
-{
-    //    printf("-> createBuffer\n"); fflush(stdout);
-    VkBufferCreateInfo bufferInfo = {};
-
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    p->n_create_buffer++;
-    if (vkCreateBuffer(p->vkDevice, &bufferInfo, NULL, buffer) != VK_SUCCESS) {
-        fprintf(stderr, "failed to create buffer on line %d", __LINE__);
-    }
-    //    printf("buffer at %p\n", (void *) buffer);
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(p->vkDevice, *buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(p, memRequirements.memoryTypeBits,
-                                               properties);
-
-    p->n_allocate_memory++;
-    if (vkAllocateMemory(p->vkDevice,
-                         &allocInfo,
-                         NULL,
-                         bufferMemory) != VK_SUCCESS) {
-        fprintf(stderr, "failed to allocate buffer memory on line %d",
-                __LINE__);
-    }
-
-    vkBindBufferMemory(p->vkDevice, *buffer, *bufferMemory, 0);
-    return;
-}
 
 
 void create_uniform_buffers(nua_t * p)
@@ -1811,11 +1697,12 @@ void create_uniform_buffers(nua_t * p)
                                      sizeof(VkDeviceMemory));
 
     for (int kk = 0; kk < p->frames_in_flight; kk++) {
-        createBuffer(p,
+        create_buffer(p->vkPDevice, p->vkDevice,
                      bufferSize,
                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      &p->uniformBuffers[kk], &p->uniformBuffersMemory[kk]);
+        p->n_create_buffer++;
     }
     return;
 }
@@ -1958,7 +1845,8 @@ void create_image(nua_t * p,
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(p, memRequirements.memoryTypeBits,
+    allocInfo.memoryTypeIndex = find_memory_type(p->vkPDevice,
+                                               memRequirements.memoryTypeBits,
                                                properties);
 
     p->n_allocate_memory++;

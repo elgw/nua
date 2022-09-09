@@ -1,8 +1,8 @@
-#include "vertex.h"
+#include "nua_object.h"
 
 /* Note: should be included from the source, not the header file. */
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+// #define STB_IMAGE_IMPLEMENTATION
+// #include <stb_image.h>
 
 
 vertex_t * vertex_new(nua_t * p, vertex_type vtype,
@@ -206,12 +206,12 @@ void vertex_update_pos(nua_t * p, vertex_t * v)
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(p, bufferSize,
-                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 &stagingBuffer, &stagingBufferMemory);
-
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                  //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                  &stagingBuffer, &stagingBufferMemory);
+    p->n_create_buffer++;
     void* data;
     vkMapMemory(p->vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data,
@@ -219,7 +219,7 @@ void vertex_update_pos(nua_t * p, vertex_t * v)
            data_size);
     vkUnmapMemory(p->vkDevice, stagingBufferMemory);
 
-    copyBuffer(p, stagingBuffer, v->instanceBuffer, bufferSize);
+    copy_buffer(p, stagingBuffer, v->instanceBuffer, bufferSize);
 
     p->n_free_memory++;
     vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
@@ -335,8 +335,8 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
     {
         printf("-> Read shaders and create modules\n");
     }
-    v->vertShader = loadShader(p, v->vert_shader_file);
-    v->fragShader = loadShader(p, v->frag_shader_file);
+    v->vertShader = load_shader(p->vkDevice, v->vert_shader_file, p->verbose);
+    v->fragShader = load_shader(p->vkDevice, v->frag_shader_file, p->verbose);
 
     // Create shader stage
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -540,11 +540,11 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
                                        &v->graphicsPipeline);
     require_VK_SUCCESS(status);
 
-        if(p->verbose > 1)
-        {
-            printf("Graphics pipeline created\n");
-        }
-        assert(v->graphicsPipeline != NULL);
+    if(p->verbose > 1)
+    {
+        printf("Graphics pipeline created\n");
+    }
+    assert(v->graphicsPipeline != NULL);
 
 
     free(shaderStages);
@@ -630,12 +630,12 @@ void vertex_create_vertex_instance_buffer(nua_t * p, vertex_t * v)
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(p, bufferSize,
-                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 &stagingBuffer, &stagingBufferMemory);
-
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                  //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                  &stagingBuffer, &stagingBufferMemory);
+    p->n_allocate_memory++;
     void* data;
     vkMapMemory(p->vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data,
@@ -643,12 +643,12 @@ void vertex_create_vertex_instance_buffer(nua_t * p, vertex_t * v)
            data_size);
 
     vkUnmapMemory(p->vkDevice, stagingBufferMemory);
-    createBuffer(p, bufferSize,
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 &v->instanceBuffer, &v->instanceBufferMemory);
-
-    copyBuffer(p, stagingBuffer, v->instanceBuffer, bufferSize);
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                  &v->instanceBuffer, &v->instanceBufferMemory);
+    p->n_allocate_memory++;
+    copy_buffer(p, stagingBuffer, v->instanceBuffer, bufferSize);
 
     p->n_free_memory++;
     vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
@@ -672,10 +672,10 @@ void vertex_create_vertex_buffer(nua_t * p, vertex_t * v)
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    createBuffer(p, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 &stagingBuffer, &stagingBufferMemory);
-
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                  &stagingBuffer, &stagingBufferMemory);
+    p->n_allocate_memory++;
     if(p->verbose > 2)
     {
         printf("at %p %p\n", stagingBufferMemory, &stagingBufferMemory);
@@ -688,12 +688,12 @@ void vertex_create_vertex_buffer(nua_t * p, vertex_t * v)
            bufferSize);
 
     vkUnmapMemory(p->vkDevice, stagingBufferMemory);
-    createBuffer(p, bufferSize,
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 &v->vertexBuffer, &v->vertexBufferMemory);
-
-    copyBuffer(p, stagingBuffer, v->vertexBuffer, bufferSize);
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                  &v->vertexBuffer, &v->vertexBufferMemory);
+    p->n_allocate_memory++;
+    copy_buffer(p, stagingBuffer, v->vertexBuffer, bufferSize);
 
     p->n_free_memory++;
     vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
@@ -710,10 +710,10 @@ void vertex_create_index_buffer(nua_t * p, vertex_t * v)
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(p, bufferSize,
-                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 &stagingBuffer, &stagingBufferMemory);
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                  &stagingBuffer, &stagingBufferMemory);
 
     void* data;
     vkMapMemory(p->vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
@@ -721,12 +721,12 @@ void vertex_create_index_buffer(nua_t * p, vertex_t * v)
     vkUnmapMemory(p->vkDevice, stagingBufferMemory);
 
 
-    createBuffer(p, bufferSize,
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 &v->indexBuffer, &v->indexBufferMemory);
+    create_buffer(p->vkPDevice, p->vkDevice, bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                  &v->indexBuffer, &v->indexBufferMemory);
 
-    copyBuffer(p, stagingBuffer, v->indexBuffer, bufferSize);
+    copy_buffer(p, stagingBuffer, v->indexBuffer, bufferSize);
 
     p->n_destroy_buffer++;
     vkDestroyBuffer(p->vkDevice, stagingBuffer, NULL);
@@ -788,8 +788,8 @@ void vertex_create_descriptor_set_layout(nua_t * p, vertex_t * v)
 
 
     VkResult result = vkCreateDescriptorSetLayout(p->vkDevice,
-                                    &layoutInfo,
-                                    NULL,
+                                                  &layoutInfo,
+                                                  NULL,
                                                   &v->descriptorSetLayout);
     require_VK_SUCCESS(result);
     free(bindings);
@@ -903,194 +903,205 @@ void vertex_create_texture_image(nua_t * p, vertex_t * v)
     }
     char imfile[] = "textures/texture.png";
     int texWidth, texHeight, texChannels;
+#if 0
     stbi_uc* pixels = stbi_load(imfile,
-                                &texWidth, &texHeight, &texChannels,
+                                &texWidth,
+                                &texHeight,
+                                &texChannels,
                                 STBI_rgb_alpha);
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-    if (!pixels) {
-        fprintf(stderr, "failed to load texture image!");
-        fprintf(stderr, "Could not read %s\n", imfile);
-        exit(EXIT_FAILURE);
-    }
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-
-    createBuffer(p,
-                 imageSize,
-                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 &stagingBuffer,
-                 &stagingBufferMemory);
-
-
-    void* data;
-    vkMapMemory(p->vkDevice,
-                stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, pixels, (size_t) imageSize);
-    vkUnmapMemory(p->vkDevice, stagingBufferMemory);
-    stbi_image_free(pixels);
-
-
-    create_image(p,
-                 texWidth,
-                 texHeight,
-                 VK_FORMAT_R8G8B8A8_SRGB,
-                 VK_SAMPLE_COUNT_1_BIT,
-                 VK_IMAGE_TILING_OPTIMAL,
-                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 &v->textureImage,
-                 &v->textureImageMemory);
-
-    transition_image_layout(p, v->textureImage,
-                            VK_FORMAT_R8G8B8A8_SRGB, // To
-                            VK_IMAGE_LAYOUT_UNDEFINED, // From
-                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-
-    copy_buffer_to_image(p, stagingBuffer,
-                         v->textureImage,
-                         (uint32_t) texWidth, (uint32_t) texHeight);
-
-    vkDestroyBuffer(p->vkDevice, stagingBuffer, NULL);
-    vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
-
-    transition_image_layout(p, v->textureImage,
-                            VK_FORMAT_R8G8B8A8_SRGB,
-                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    return;
-}
-
-void vertex_destroy_texture_image(nua_t * p, vertex_t * v)
-{
-    vkDestroyImage(p->vkDevice, v->textureImage, NULL);
-    vkFreeMemory(p->vkDevice, v->textureImageMemory, NULL);
-    return;
-}
-
-void vertex_create_texture_image_view(nua_t * p, vertex_t * v)
-{
-    v->textureImageView = create_image_view(p,
-                                            v->textureImage,
-                                            VK_FORMAT_R8G8B8A8_SRGB,
-                                            VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-void vertex_destroy_texture_image_view(nua_t * p, vertex_t * v)
-{
-    vkDestroyImageView(p->vkDevice, v->textureImageView, NULL);
-}
-
-void vertex_destroy_texture_sampler(nua_t * p, vertex_t * v)
-{
-    vkDestroySampler(p->vkDevice, v->textureSampler, NULL);
-}
-
-void vertex_create_texture_sampler(nua_t * p, vertex_t * v)
-{
-    VkSamplerCreateInfo samplerInfo = {};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    /* Options:
-     * VK_SAMPLER_ADDRESS_MODE_REPEAT
-     * VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT
-     * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-     * VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
-     * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
-     */
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-    samplerInfo.anisotropyEnable = VK_TRUE;
-
-    VkPhysicalDeviceProperties properties = {};
-    vkGetPhysicalDeviceProperties(p->vkPDevice, &properties);
-    //printf("maxSamplerAnisotropy = %f\n", properties.limits.maxSamplerAnisotropy);
-    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
-    VkResult result = vkCreateSampler(p->vkDevice,
-                                      &samplerInfo,
-                                      NULL,
-                                      &v->textureSampler);
-    require_VK_SUCCESS(result);
-    return;
-}
-
-void vertex_create_descriptor_pool(nua_t * p, vertex_t * v)
-{
-#if sampler_test
-    VkDescriptorPoolSize * poolSize = calloc(3,
-                                             sizeof(VkDescriptorPoolSize));
-    poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize[0].descriptorCount = (uint32_t) p->frames_in_flight;
-    poolSize[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize[1].descriptorCount = (uint32_t) p->frames_in_flight;
-    poolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize[2].descriptorCount = (uint32_t) p->frames_in_flight;
-
-    VkDescriptorPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 3;
-    poolInfo.pPoolSizes = poolSize;
-    poolInfo.maxSets = (uint32_t) p->frames_in_flight;
-
-    VkResult result = vkCreateDescriptorPool(p->vkDevice,
-                                             &poolInfo,
-                                             NULL,
-                                             &v->descriptorPool);
-    require_VK_SUCCESS(result);
-    free(poolSize);
 #else
-    VkDescriptorPoolSize poolSize = {};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = p->frames_in_flight*2;
-
-    VkDescriptorPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = p->frames_in_flight;
-    VkResult result = vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool);
-    require_VK_SUCCESS(result);
+                                texWidth = 128;
+                                texHeight = 128;
+                                texChannels = 4;
+                                uint8_t * pixels = calloc(texWidth*texHeight*texChannels,
+                                                          sizeof(uint8_t));
 #endif
-    return;
-}
+                                VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-void vertex_destroy_descriptor_pool(nua_t * p, vertex_t * v)
-{
-    vkDestroyDescriptorPool(p->vkDevice, v->descriptorPool, NULL);
-    return;
-}
+                                if (!pixels) {
+                                    fprintf(stderr, "failed to load texture image!");
+                                    fprintf(stderr, "Could not read %s\n", imfile);
+                                    exit(EXIT_FAILURE);
+                                }
 
-void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v)
-{
-    if(p->verbose > 2)
+                                VkBuffer stagingBuffer;
+                                VkDeviceMemory stagingBufferMemory;
+
+                                create_buffer(p->vkPDevice, p->vkDevice,
+                                              imageSize,
+                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                              &stagingBuffer,
+                                              &stagingBufferMemory);
+
+
+                                void* data;
+                                vkMapMemory(p->vkDevice,
+                                            stagingBufferMemory, 0, imageSize, 0, &data);
+                                memcpy(data, pixels, (size_t) imageSize);
+                                vkUnmapMemory(p->vkDevice, stagingBufferMemory);
+
+                                //stbi_image_free(pixels);
+                                free(pixels);
+
+                                create_image(p,
+                                             texWidth,
+                                             texHeight,
+                                             VK_FORMAT_R8G8B8A8_SRGB,
+                                             VK_SAMPLE_COUNT_1_BIT,
+                                             VK_IMAGE_TILING_OPTIMAL,
+                                             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                             &v->textureImage,
+                                             &v->textureImageMemory);
+
+                                transition_image_layout(p, v->textureImage,
+                                                        VK_FORMAT_R8G8B8A8_SRGB, // To
+                                                        VK_IMAGE_LAYOUT_UNDEFINED, // From
+                                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+
+                                copy_buffer_to_image(p, stagingBuffer,
+                                                     v->textureImage,
+                                                     (uint32_t) texWidth, (uint32_t) texHeight);
+
+                                vkDestroyBuffer(p->vkDevice, stagingBuffer, NULL);
+                                vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
+
+                                transition_image_layout(p, v->textureImage,
+                                                        VK_FORMAT_R8G8B8A8_SRGB,
+                                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+                                return;
+                                }
+
+        void vertex_destroy_texture_image(nua_t * p, vertex_t * v)
     {
-        printf("void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v)\n");
+        vkDestroyImage(p->vkDevice, v->textureImage, NULL);
+        vkFreeMemory(p->vkDevice, v->textureImageMemory, NULL);
+        return;
     }
-    vkDestroyShaderModule(p->vkDevice, v->fragShader, NULL);
-    vkDestroyShaderModule(p->vkDevice, v->vertShader, NULL);
-    vkDestroyPipeline(p->vkDevice, v->graphicsPipeline, NULL);
-    vkDestroyPipelineLayout(p->vkDevice, v->pipelineLayout, NULL);
-    return;
-}
 
-void vertex_destroy_descriptor_sets(nua_t * p, vertex_t * v)
-{
-    vkDestroyDescriptorSetLayout(p->vkDevice, v->descriptorSetLayout, NULL);
-    free(v->descriptorSets);
-    return;
-}
+    void vertex_create_texture_image_view(nua_t * p, vertex_t * v)
+    {
+        v->textureImageView = create_image_view(p,
+                                                v->textureImage,
+                                                VK_FORMAT_R8G8B8A8_SRGB,
+                                                VK_IMAGE_ASPECT_COLOR_BIT);
+    }
+
+    void vertex_destroy_texture_image_view(nua_t * p, vertex_t * v)
+    {
+        vkDestroyImageView(p->vkDevice, v->textureImageView, NULL);
+    }
+
+    void vertex_destroy_texture_sampler(nua_t * p, vertex_t * v)
+    {
+        vkDestroySampler(p->vkDevice, v->textureSampler, NULL);
+    }
+
+    void vertex_create_texture_sampler(nua_t * p, vertex_t * v)
+    {
+        VkSamplerCreateInfo samplerInfo = {};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        /* Options:
+         * VK_SAMPLER_ADDRESS_MODE_REPEAT
+         * VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT
+         * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+         * VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
+         * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
+         */
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+        samplerInfo.anisotropyEnable = VK_TRUE;
+
+        VkPhysicalDeviceProperties properties = {};
+        vkGetPhysicalDeviceProperties(p->vkPDevice, &properties);
+        //printf("maxSamplerAnisotropy = %f\n", properties.limits.maxSamplerAnisotropy);
+        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+        VkResult result = vkCreateSampler(p->vkDevice,
+                                          &samplerInfo,
+                                          NULL,
+                                          &v->textureSampler);
+        require_VK_SUCCESS(result);
+        return;
+    }
+
+    void vertex_create_descriptor_pool(nua_t * p, vertex_t * v)
+    {
+#if sampler_test
+        VkDescriptorPoolSize * poolSize = calloc(3,
+                                                 sizeof(VkDescriptorPoolSize));
+        poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize[0].descriptorCount = (uint32_t) p->frames_in_flight;
+        poolSize[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize[1].descriptorCount = (uint32_t) p->frames_in_flight;
+        poolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSize[2].descriptorCount = (uint32_t) p->frames_in_flight;
+
+        VkDescriptorPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = 3;
+        poolInfo.pPoolSizes = poolSize;
+        poolInfo.maxSets = (uint32_t) p->frames_in_flight;
+
+        VkResult result = vkCreateDescriptorPool(p->vkDevice,
+                                                 &poolInfo,
+                                                 NULL,
+                                                 &v->descriptorPool);
+        require_VK_SUCCESS(result);
+        free(poolSize);
+#else
+        VkDescriptorPoolSize poolSize = {};
+        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize.descriptorCount = p->frames_in_flight*2;
+
+        VkDescriptorPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = p->frames_in_flight;
+        VkResult result = vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool);
+        require_VK_SUCCESS(result);
+#endif
+        return;
+    }
+
+    void vertex_destroy_descriptor_pool(nua_t * p, vertex_t * v)
+    {
+        vkDestroyDescriptorPool(p->vkDevice, v->descriptorPool, NULL);
+        return;
+    }
+
+    void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v)
+    {
+        if(p->verbose > 2)
+        {
+            printf("void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v)\n");
+        }
+        vkDestroyShaderModule(p->vkDevice, v->fragShader, NULL);
+        vkDestroyShaderModule(p->vkDevice, v->vertShader, NULL);
+        vkDestroyPipeline(p->vkDevice, v->graphicsPipeline, NULL);
+        vkDestroyPipelineLayout(p->vkDevice, v->pipelineLayout, NULL);
+        return;
+    }
+
+    void vertex_destroy_descriptor_sets(nua_t * p, vertex_t * v)
+    {
+        vkDestroyDescriptorSetLayout(p->vkDevice, v->descriptorSetLayout, NULL);
+        free(v->descriptorSets);
+        return;
+    }

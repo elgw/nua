@@ -21,11 +21,11 @@ less scary). I'm totally new to Vulkan so _don't_ browse the code for
 *best practices*.
 
 Chimera has way more features (use it!) but is also more resource hungry.
- - Install size: chimera: > 500 MB, nuademo: 0.5 MB
- - When rendering 4 M beads, chimera used 32 GB RAM and 353 MiB GPU
-   memory, it took 3 min to load the cmm file.
- - nuademo loaded the same file in 13 s, used 0.7 GB of
-   ram, 132 MiB of GPU memory.
+ - Install size: chimera: > 500 MB, libnua+nuademo: < 0.3 MB
+ - When rendering 4 M beads from a cmm file, chimera used 32 GB RAM and 353 MiB GPU
+   memory. It took  > 2 min to get up the graphics on screen..
+ - nuademo loaded the same file in 9 s, used 0.7 GB of
+   RAM and 132 MiB of GPU memory.
  - RAM usage was measured by `cat /proc/<PID>/status | grep VmPeak`
    and GPU Memory usage from `nvidia-smi`.
 
@@ -117,19 +117,22 @@ layers (which you would have to enable manually).
 ## Status
 
 ### to do
- - [ ] add installation procedures and package creation to the makefile.
- - [ ] Enable fillModeNonSolid: `VkPhysicalDeviceFeatures->fillModeNonSolid is false. The Vulkan spec states: If the fillModeNonSolid feature is not enabled`
- - [ ] Add a keyboard shortcut to pause uploading new data to the GPU.
- - [ ] Proper Phong lighting
  - [ ] Zoom in / out using right mouse button.
- - [ ] build nucleard as shared object
- - [ ] Light intensity that depends on the distance to the eye.
- - [ ] Steal some ideas from chimera, especially look at their shaders in `UCSF-Chimera64-1.14/share/Shaders/`.
+ - [ ] Add a keyboard shortcut to pause uploading new data to the GPU.
  - [ ] Read data from csv files.
  - [ ] Adopt viewport to data (currently only views a unit cube).
  - [ ] FPS limiter, only update data/redraw every m ms.
+ - [ ] add installation procedures and package creation to the makefile.
+ - [ ] One model matrix per model :)
+ - [ ] option to close nua from thread (on calculations finished) and
+       not just via the GUI.
+
 
 ### possibly
+ - [ ] Proper Phong lighting
+ - [ ] Enable fillModeNonSolid: `VkPhysicalDeviceFeatures->fillModeNonSolid is false. The Vulkan spec states: If the fillModeNonSolid feature is not enabled`
+ - [ ] Light intensity that depends on the distance to the eye.
+ - [ ] Steal some ideas from chimera, especially look at their shaders in `UCSF-Chimera64-1.14/share/Shaders/`.
  - [ ] animate / auto-rotate?
  - [ ] Switch to more refined bead model on zoom-in?
  - [ ] Improve GUI (right mouse button for zooming, explode view, etc ...)
@@ -151,3 +154,8 @@ layers (which you would have to enable manually).
  - [https://vulkan-tutorial.com/] recommended Vulkan tutorial.
  - [https://vkguide.dev/] another Vulkan tutorial.
  - [https://github.com/KhronosGroup/Vulkan-Samples] the Vulkan sample collection.
+
+Libraries:
+ - [SDL2](https://www.libsdl.org/)
+ - [Vulkan](https://www.vulkan.org/)
+ - [Kazmath](https://github.com/Kazade/kazmath)

@@ -3,3 +3,5 @@
 *.gch
 nuademo
 libnua.so
+*.cmm
+*_ut

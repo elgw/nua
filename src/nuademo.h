@@ -1,7 +1,7 @@
 #ifndef __nuademo_h__
 #define __nuademo_h__
 
-#include "nucleard.h"
+#include "nua.h"
 
 #include <sys/types.h>
 #include <unistd.h>

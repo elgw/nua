@@ -8,6 +8,8 @@
 #include <string.h>
 
 #include <libxml/parser.h>
+#include <libxml/xmlreader.h>
+
 #include <zlib.h>
 
 

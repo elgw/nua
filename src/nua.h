@@ -1,5 +1,5 @@
-#ifndef __nucleard_h__
-#define __nucleard_h__
+#ifndef __nua_h__
+#define __nua_h__
 
 #define sampler_test 1
 
@@ -19,13 +19,12 @@
 
 #include "vshape.h"
 #include "cmm_io.h"
-#include "vertex.h"
+#include "nua_object.h"
 #include "nua_util.h"
 #include "nua_vkutil.h"
 
 struct vertex;
 typedef struct vertex vertex_t;
-
 
 typedef struct {
     uint32_t graphics; // vkQueueFamilyIndex;
@@ -159,10 +158,21 @@ typedef struct prog {
 } nua_t;
 
 
-/* High level interface */
+/*
+ * High level interface
+ */
+
+/* Create a new nua object with default settings and
+ * some fields to fill out  */
 nua_t * nua_new();
+
+/* Do some validation on the object and then start the thing */
 void nua_run(nua_t * p);
+
+/* Free up. Todo: close window if called from thread. */
 void nua_destroy(nua_t * p);
+
+/* Print brief ui-usage to stdout */
 void nua_show_usage(__attribute__((unused)) nua_t * p);
 
 /* Tell nua to draw a new frame. Usually not needed. */
@@ -171,9 +181,11 @@ void nua_redraw(nua_t * p);
 /* Tell nua that the data has changed, will trigger a redraw  */
 void nua_data_changed(nua_t * p);
 
-void nua_setup_graphics(nua_t * p);
 
-VkSampleCountFlagBits getMaxUsableSampleCount(nua_t *);
+/*
+ * Internal TODO don't expose these
+ */
+void nua_setup_graphics(nua_t * p);
 
 void create_command_pool(nua_t * p);
 void destroy_command_pool(nua_t * p);
@@ -182,7 +194,6 @@ int create_swap_chain(nua_t * p);
 void destroy_swap_chain(nua_t * p);
 void recreate_swap_chain(nua_t * p);
 
-//void create_VK_ImageViews(p);
 void create_image_views(nua_t * p);
 void destroy_image_views(nua_t * p);
 
@@ -197,15 +208,7 @@ void destroy_framebuffers(nua_t * p);
 
 void create_vertex_buffer(nua_t * p);
 void destroy_vertex_buffer(nua_t * p);
-
-void createBuffer(nua_t * p, VkDeviceSize size,
-                  VkBufferUsageFlags usage,
-                  VkMemoryPropertyFlags properties,
-                  VkBuffer * buffer,
-                  VkDeviceMemory  * bufferMemory);
-void copyBuffer(nua_t * p, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
-
+void copy_buffer(nua_t * p, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 void record_command_buffer(nua_t * p, uint32_t imageIndex);
 void create_descriptor_set_layout(nua_t * p);
 
@@ -247,10 +250,10 @@ VkImageView create_image_view(nua_t*,
                               VkFormat,
                               VkImageAspectFlags);
 
-
 VkCommandBuffer begin_single_time_commands(nua_t * p);
-void end_single_time_commands(nua_t * p, VkCommandBuffer commandBuffer);
 
+void end_single_time_commands(nua_t * p,
+                         VkCommandBuffer commandBuffer);
 
 void transition_image_layout(nua_t * p,
                              VkImage image,
@@ -262,8 +265,6 @@ void copy_buffer_to_image(nua_t * p, VkBuffer buffer,
                           VkImage image,
                           uint32_t width, uint32_t height);
 
-VkShaderModule loadShader(nua_t * p, const char * file);
-
 void unit_tests(void);
 void setup_SDL(nua_t * p);
 void init_vulkan(nua_t * p);
@@ -271,4 +272,4 @@ void init_vulkan(nua_t * p);
 void nua_main_loop(nua_t * p);
 void nua_destroy_graphics(nua_t * p);
 
-#endif // #ifndef __hello_triangle_h__
+#endif

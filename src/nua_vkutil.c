@@ -299,3 +299,165 @@ void print_VkPresentModeKHR(VkPresentModeKHR mode)
     }
     return;
 }
+
+VkSampleCountFlagBits get_max_usable_sample_count(VkPhysicalDevice pdev)
+{
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(pdev, &physicalDeviceProperties);
+
+    VkSampleCountFlags counts =
+        physicalDeviceProperties.limits.framebufferColorSampleCounts
+        & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT;
+}
+
+void print_VkSampleCountFlagBits(VkSampleCountFlagBits b)
+{
+switch(b){
+case VK_SAMPLE_COUNT_16_BIT:
+    printf("VK_SAMPLE_COUNT_16_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_1_BIT:
+    printf("VK_SAMPLE_COUNT_1_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_2_BIT:
+    printf("VK_SAMPLE_COUNT_2_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_32_BIT:
+    printf("VK_SAMPLE_COUNT_32_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_4_BIT:
+    printf("VK_SAMPLE_COUNT_4_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_64_BIT:
+    printf("VK_SAMPLE_COUNT_64_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_8_BIT:
+    printf("VK_SAMPLE_COUNT_8_BIT\n");
+    break;
+case VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM:
+    printf("VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM\n");
+    break;
+}
+return;
+}
+
+
+void create_buffer(VkPhysicalDevice pdev,
+                   VkDevice dev,
+                   VkDeviceSize size,
+                   VkBufferUsageFlags usage,
+                   VkMemoryPropertyFlags properties,
+                   VkBuffer * buffer,
+                   VkDeviceMemory * bufferMemory)
+{
+
+    VkBufferCreateInfo bufferInfo = {};
+
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+
+    if (vkCreateBuffer(dev, &bufferInfo, NULL, buffer) != VK_SUCCESS) {
+        fprintf(stderr, "failed to create buffer on line %d", __LINE__);
+    }
+    //    printf("buffer at %p\n", (void *) buffer);
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(dev, *buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = find_memory_type(pdev,
+                                               memRequirements.memoryTypeBits,
+                                               properties);
+
+
+    if (vkAllocateMemory(dev,
+                         &allocInfo,
+                         NULL,
+                         bufferMemory) != VK_SUCCESS) {
+        fprintf(stderr, "failed to allocate buffer memory on line %d",
+                __LINE__);
+    }
+
+    vkBindBufferMemory(dev, *buffer, *bufferMemory, 0);
+    return;
+}
+
+uint32_t find_memory_type(VkPhysicalDevice dev,
+                        uint32_t typeFilter,
+                        VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(dev,
+                                        &memProperties);
+    // What is this? TODO understand
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    fprintf(stderr, "failed to find a suitable memory type\n");
+    exit(EXIT_FAILURE);
+    return 0;
+}
+
+VkShaderModule load_shader(VkDevice dev, const char * file, int verbose)
+{
+    if(verbose > 1)
+    {
+        printf("load_shader: trying to open %s\n", file);
+    }
+
+    FILE * fid = fopen(file, "r");
+    if(fid == NULL)
+    {
+        fprintf(stderr, "! Error\nFailed to open the shader file %s. "
+                "The shader should be in spv format.\n",
+                file);
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(fid, 0, SEEK_END);
+    long fsize = ftell(fid);
+    fseek(fid, 0, SEEK_SET);
+
+    size_t buff_size = fsize +1;
+    uint32_t * buffer = calloc(buff_size, 1);
+    assert(fsize % 4 == 0);
+    size_t codesize = fread(buffer, 4, fsize/4, fid);
+    if(verbose > 2)
+    {
+        printf("Read %zu bytes\n", codesize*4);
+    }
+    assert(codesize < buff_size);
+    fclose(fid);
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = codesize*4;
+    createInfo.pCode = buffer;
+    VkShaderModule shaderModule;
+    int status = vkCreateShaderModule(dev,
+                                      &createInfo,
+                                      NULL,
+                                      &shaderModule);
+    require_VK_SUCCESS(status);
+
+    free(buffer);
+    return shaderModule;
+}
