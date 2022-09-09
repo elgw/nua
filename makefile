@@ -37,10 +37,21 @@ LDFLAGS+=-lm
 CFLAGS+=`pkg-config stb --cflags`
 LDFLAGS+=`pkg-config stb --libs`
 
+nuademo: src/nuademo.c src/nuademo.h libnua.so
+	$(CC) $(CFLAGS) src/nuademo.c -lnua -L./ $(LDFLAGS) -o nuademo
 
-nuademo: src/nuademo.c src/nuademo.h nucleard.o vshape.o cmm_io.o vertex.o nua_util.o nucleard.o nua_vkutil.o
-	$(CC) $(CFLAGS) src/nuademo.c nucleard.o vshape.o cmm_io.o vertex.o nua_util.o nua_vkutil.o $(LDFLAGS) -o nuademo
+VSFILES=src/vshape_ut.c src/vshape.c
+vshape_ut: $(VSFILES)
+	gcc -Wall -Wextra -g3 $(VSFILES) -lm -o vshape_ut
 
+cmm_io_ut: cmm_io.o src/cmm_io_ut.c src/cmm_io.c
+	$(CC) $(CFLAGS) src/cmm_io_ut.c cmm_io.o $(LDFLAGS) -o cmm_io_ut
+
+NUA_SO_OBJECTS=vertex.o nucleard.o cmm_io.o nua_util.o nua_vkutil.o vshape.o
+libnua.so: $(NUA_SO_OBJECTS)
+	gcc -shared -o libnua.so $(NUA_SO_OBJECTS)
+
+CFLAGS+=-fpic
 
 FILES=src/nucleard.c src/nucleard.h
 nucleard.o: $(FILES)  shaders
@@ -63,19 +74,11 @@ nua_util.o: src/nua_util.c src/nua_util.h
 
 shaders: shaders/shader_ball_frag.spv shaders/shader_ball_vert.spv shaders/shader_connect_frag.spv shaders/shader_connect_vert.spv shaders/shader_domain_frag.spv shaders/shader_domain_vert.spv
 
-cmm_io_ut: cmm_io.o src/cmm_io_ut.c src/cmm_io.c
-	$(CC) $(CFLAGS) src/cmm_io_ut.c cmm_io.o $(LDFLAGS) -o cmm_io_ut
-
 %.spv: %.vert
 	glslangValidator -V ./$< -o $@
 
 %.spv: %.frag
 	glslangValidator -V ./$< -o $@
-
-
-VSFILES=vshape_ut.c vshape.c
-vshape_ut: $(VSFILES)
-	gcc -Wall -Wextra -g3 $(VSFILES) -lm -o vshape_ut
 
 clean:
 	rm -f nuademo
@@ -84,3 +87,4 @@ clean:
 	rm -f shaders/*.spv
 	rm -f src/*.gch
 	rm -f cmm_io_ut
+	rm -f libnua.so

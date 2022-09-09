@@ -11,6 +11,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#define nua_fixme printf("FIX me! File: %s Function: %s Line: %d\n", \
+                         __FILE__, __FUNCTION__, __LINE__);
+
 size_t get_peakMemoryKB(void);
 float timespec_diff(struct timespec* end, struct timespec * start);
 

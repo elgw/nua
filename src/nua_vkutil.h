@@ -1,5 +1,7 @@
 /* Purpose of this file:
- * move away Vulkan noise from other files */
+ * move away Vulkan noise from other files.
+ * Put Vulkan functions not requiring more than a few
+ * objects here */
 
 #ifndef __nua_vkutil_h__
 #define __nua_vkutil_h__

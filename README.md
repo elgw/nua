@@ -106,6 +106,7 @@ To build and run the demo:
 
 ``` C
 make
+LD_LIBRARY_PATH=LD_LIBRARY_PATH:`pwd`
 ./nuademo --help
 ```
 

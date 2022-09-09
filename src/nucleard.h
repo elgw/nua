@@ -67,8 +67,10 @@ typedef struct prog {
     volatile int data_changed; // set to 1 to let nua update the data
     size_t nframes;
 
+    /* Projection type: TODO: enum */
     int proj_ortho;
 
+    /* Handler to custom event callback function */
     void (*user_handle) (SDL_Event , void *);
     void * user_data;
 
