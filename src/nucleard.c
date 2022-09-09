@@ -147,12 +147,8 @@ void setup_VK_physical_device(nua_t * p)
     uint32_t deviceCount = 0;
 
     int status = vkEnumeratePhysicalDevices(p->vkInstance, &deviceCount, NULL);
-    if(status != VK_SUCCESS)
-    {
-        fprintf(stderr, "vkEnumeratePhysicaldevices failed at line %d\n",
-                __LINE__);
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
+
     if(p->verbose > 2)
     {
         printf("Found %u devices\n", deviceCount);
@@ -441,16 +437,8 @@ void setup_VK_instance(nua_t * p)
     createInfo.ppEnabledExtensionNames = extensions;
 
     status = vkCreateInstance(&createInfo, NULL, &p->vkInstance);
-    if(status != VK_SUCCESS) {
-        fprintf(stderr, "failed to create VkInstance!\n");
-        switch(status){
-        case VK_ERROR_EXTENSION_NOT_PRESENT:
-            printf("VK_ERROR_EXTENSION_NOT_PRESENT\n");
-            break;
+    require_VK_SUCCESS(status);
 
-        }
-        exit(EXIT_FAILURE);
-    }
     if(p->verbose > 2)
     {
         printf("VKInstance created\n");
@@ -459,13 +447,6 @@ void setup_VK_instance(nua_t * p)
     free(layernames);
 
     free(extensions_sdl);
-    /*
-      for(uint32_t kk = 0; kk<extensioncount; kk++)
-      {
-      free((char*) extensions[kk]);
-      }
-      free((char **) extensions);
-    */
     return;
 }
 
@@ -773,11 +754,8 @@ void create_image_views(nua_t * p)
                                        &createInfo,
                                        NULL,
                                        &p->swap_conf.swapChainImageViews[kk]);
-        if(status != VK_SUCCESS)
-        {
-            printf("Failed to create ImageView\n");
-            exit(EXIT_FAILURE);
-        }
+        require_VK_SUCCESS(status);
+
         p->n_image_view_create++;
     }
 }
@@ -842,12 +820,8 @@ VkShaderModule loadShader(nua_t * p, const char * file)
                                       &createInfo,
                                       NULL,
                                       &shaderModule);
-    if(status != VK_SUCCESS) {
-        fprintf(stderr, "! Error\nFailed to create shader module from %s\n"
-                "Please validate that it was created with 'glslangValidator -V ...'\n",
-                file);
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
+
     free(buffer);
     return shaderModule;
 }
@@ -932,10 +906,8 @@ void create_render_pass(nua_t * p)
                                     &renderPassInfo,
                                     NULL,
                                     &p->renderPass);
-    if(status != VK_SUCCESS) {
-        printf("failed to create render pass!");
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
+
     free(attachments);
     return;
 }
@@ -958,10 +930,7 @@ void create_command_pool(nua_t * p)
                                      &poolInfo,
                                      NULL,
                                      &p->commandPool);
-    if(status != VK_SUCCESS) {
-        fprintf(stderr, "failed to create command pool!");
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
 }
 
 void destroy_command_pool(nua_t * p)
@@ -1013,10 +982,8 @@ void create_framebuffers(nua_t * p)
                                          &framebufferInfo,
                                          NULL,
                                          &p->swapChainFramebuffers[kk]);
-        if(status != VK_SUCCESS) {
-            fprintf(stderr, "failed to create framebuffers!");
-            exit(EXIT_FAILURE);
-        }
+        require_VK_SUCCESS(status);
+
         free(attachments);
     }
     if(p->verbose > 2)
@@ -1050,10 +1017,8 @@ void create_command_buffer(nua_t * p)
         vkAllocateCommandBuffers(p->vkDevice,
                                  &allocInfo,
                                  p->commandBuffers);
-    if(status != VK_SUCCESS) {
-        fprintf(stderr, "failed to allocate command buffers!");
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
+
     if(p->verbose > 2)
     {
         printf("p->commandBuffers at %p\n", &p->commandBuffers[0]);
@@ -1074,10 +1039,8 @@ void record_command_buffer(nua_t * p, uint32_t imageIndex)
     beginInfo.pInheritanceInfo = NULL; // Optional
 
     int status = vkBeginCommandBuffer(p->commandBuffers[p->current_frame], &beginInfo);
-    if(status != VK_SUCCESS) {
-        fprintf(stderr, "failed to begin recording command buffer!");
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
+
 
 
     //printf("->vkCmdBindVertexBuffers\n");
@@ -1146,10 +1109,8 @@ void record_command_buffer(nua_t * p, uint32_t imageIndex)
     vkCmdEndRenderPass(p->commandBuffers[p->current_frame]);
 
     status = vkEndCommandBuffer(p->commandBuffers[p->current_frame]);
-    if(status != VK_SUCCESS) {
-        fprintf(stderr, "failed to record command buffer!");
-        exit(EXIT_FAILURE);
-    }
+    require_VK_SUCCESS(status);
+
     return;
 }
 
@@ -1340,7 +1301,9 @@ void draw_frame(nua_t * p)
                       1,
                       &submitInfo,
                       p->inFlightFences[p->current_frame]);
+
     if(status != VK_SUCCESS) {
+        print_VkResult(status);
         fprintf(stderr, "failed to submit draw command buffer!");
         goto fail;
 
@@ -1573,23 +1536,14 @@ void create_sync_objects(nua_t * p)
                                        &semaphoreInfo,
                                        NULL,
                                        &p->imageAvailableSemaphores[kk]);
-        if(status != VK_SUCCESS)
-        {
-            fprintf(stderr, "vkCreateSemaphore failed on line %d\n",
-                    __LINE__);
-            exit(EXIT_FAILURE);
-        }
+        require_VK_SUCCESS(status);
+
 
         status = vkCreateSemaphore(p->vkDevice,
                                    &semaphoreInfo,
                                    NULL,
                                    &p->renderFinishedSemaphores[kk]);
-        if(status != VK_SUCCESS)
-        {
-            fprintf(stderr, "vkCreateSemaphore failed on line %d\n",
-                    __LINE__);
-            exit(EXIT_FAILURE);
-        }
+        require_VK_SUCCESS(status);
 
 
         VkFenceCreateInfo fenceInfo = {};
@@ -1598,12 +1552,7 @@ void create_sync_objects(nua_t * p)
         status = vkCreateFence(p->vkDevice,
                                &fenceInfo, NULL,
                                &p->inFlightFences[kk]);
-        if(status != VK_SUCCESS)
-        {
-            fprintf(stderr, "vkCreateFence failed on line %d\n",
-                    __LINE__);
-            exit(EXIT_FAILURE);
-        }
+        require_VK_SUCCESS(status);
 
     }
     return;

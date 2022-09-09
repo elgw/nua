@@ -13,6 +13,14 @@
 #include <vulkan/vulkan.h>
 
 void print_VkResult(VkResult r);
+
+#define require_VK_SUCCESS(x) if(x != VK_SUCCESS) {\
+        print_VkResult(x);\
+        fprintf(stderr, "Failure in %s %s line %d\n", __FILE__, __FUNCTION__, __LINE__); \
+        exit(EXIT_FAILURE); \
+    }
+
+
 void print_VkPresentModeKHR(VkPresentModeKHR mode);
 
 #endif
