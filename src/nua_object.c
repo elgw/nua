@@ -4,6 +4,17 @@
 // #define STB_IMAGE_IMPLEMENTATION
 // #include <stb_image.h>
 
+#ifndef __shaders_h__
+#define __shaders_h__
+#include "../shaders/shader_ball_frag.spv.h"
+#include "../shaders/shader_ball_vert.spv.h"
+#include "../shaders/shader_connect_frag.spv.h"
+#include "../shaders/shader_connect_vert.spv.h"
+#include "../shaders/shader_domain_frag.spv.h"
+#include "../shaders/shader_domain_vert.spv.h"
+#endif
+
+
 
 vertex_t * vertex_new(nua_t * p, vertex_type vtype,
                       int nobjects, float * object_data)
@@ -335,6 +346,7 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
     {
         printf("-> Read shaders and create modules\n");
     }
+
     v->vertShader = load_shader(p->vkDevice, v->vert_shader_file, p->verbose);
     v->fragShader = load_shader(p->vkDevice, v->frag_shader_file, p->verbose);
 

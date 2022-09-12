@@ -126,6 +126,7 @@ layers (which you would have to enable manually).
  - [ ] One model matrix per model :)
  - [ ] option to close nua from thread (on calculations finished) and
        not just via the GUI.
+ - [ ] include spv in library (`xxd -i` or similar).
 
 
 ### possibly

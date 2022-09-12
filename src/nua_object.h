@@ -20,6 +20,8 @@
 #include <SDL.h>
 #include <SDL_vulkan.h>
 
+
+
 /* The three types of object that can be created */
 enum vertex_type_{
     VERTEX_BALL,

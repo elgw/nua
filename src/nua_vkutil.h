@@ -13,6 +13,8 @@
 #include <stdlib.h>
 
 #include <vulkan/vulkan.h>
+// https://github.com/KhronosGroup/glslang
+// #include "glslang/Include/glslang_c_interface.h"
 
 void print_VkResult(VkResult r);
 
@@ -41,6 +43,13 @@ uint32_t find_memory_type(VkPhysicalDevice dev,
                           uint32_t typeFilter,
                           VkMemoryPropertyFlags properties);
 
+/* Load shader from buffer */
+VkShaderModule shader_from_buffer(VkDevice dev,
+                                  const uint32_t * buffer,
+                                  size_t buffer_size,
+                                  int verbose);
+
+/* Load shader from file name */
 VkShaderModule load_shader(VkDevice dev,
                            const char * file,
                            int verbose);

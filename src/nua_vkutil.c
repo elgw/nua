@@ -447,9 +447,28 @@ VkShaderModule load_shader(VkDevice dev, const char * file, int verbose)
     }
     assert(codesize < buff_size);
     fclose(fid);
+
+    VkShaderModule shader = shader_from_buffer(dev,
+                                               buffer,
+                                               codesize,
+                                               verbose);
+    free(buffer);
+    return shader;
+}
+
+VkShaderModule shader_from_buffer(VkDevice dev,
+                                      const uint32_t * buffer,
+                                      size_t buffer_size,
+                                      int verbose)
+ {
+     if(verbose > 2)
+     {
+         printf("shader_from_buffer\n");
+     }
+
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = codesize*4;
+    createInfo.codeSize = buffer_size*4;
     createInfo.pCode = buffer;
     VkShaderModule shaderModule;
     int status = vkCreateShaderModule(dev,
@@ -457,7 +476,5 @@ VkShaderModule load_shader(VkDevice dev, const char * file, int verbose)
                                       NULL,
                                       &shaderModule);
     require_VK_SUCCESS(status);
-
-    free(buffer);
     return shaderModule;
 }

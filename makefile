@@ -74,6 +74,11 @@ nua_util.o: src/nua_util.c src/nua_util.h
 
 shaders: shaders/shader_ball_frag.spv shaders/shader_ball_vert.spv shaders/shader_connect_frag.spv shaders/shader_connect_vert.spv shaders/shader_domain_frag.spv shaders/shader_domain_vert.spv
 
+shaders_spv: shaders/shader_ball_frag.spv.h shaders/shader_ball_vert.spv.h shaders/shader_connect_frag.spv.h shaders/shader_connect_vert.spv.h shaders/shader_domain_frag.spv.h shaders/shader_domain_vert.spv.h
+
+%.spv.h: %.spv
+	xxd -i ./$< > $@
+
 %.spv: %.vert
 	glslangValidator -V ./$< -o $@
 
