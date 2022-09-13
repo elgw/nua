@@ -48,7 +48,7 @@ cmm_io_ut: cmm_io.o src/cmm_io_ut.c src/cmm_io.c
 
 NUA_SO_OBJECTS=nua_object.o nua.o cmm_io.o nua_util.o nua_vkutil.o vshape.o
 libnua.so: $(NUA_SO_OBJECTS)
-	gcc -shared -fpic -o libnua.so $(NUA_SO_OBJECTS)
+	gcc -shared -fpic -o libnua.so $(NUA_SO_OBJECTS) $(LDF)
 
 CFLAGS+=-fpic
 
