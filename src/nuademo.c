@@ -506,6 +506,13 @@ void nua_demo_ui(SDL_Event e, void *data)
                 nuad->brown = 0;
             }
         }
+        if(keyDown == SDL_SCANCODE_C)
+        {
+            pthread_create(&nuad->timeout_thread,
+                                   NULL,
+                                   close_nua_from_thread,
+                                   nuad);
+        }
     }
     return;
 }
@@ -596,6 +603,22 @@ void nuademo_stop_calc(void *data)
     return;
 }
 
+void * close_nua_from_thread(void * data)
+{
+    nuademo_t * nuad = (nuademo_t *) data;
+    printf("Will close nua from a thread in 5 s\n");
+    sleep(5);
+    nua_close(nuad->nua);
+    return NULL;
+}
+
+void nuad_print_usage(UNUSED nuademo_t * nuad)
+{
+    printf(" Keyboard shortcuts enabled in nuademo:\n");
+    printf("      <r> increase brownian force      <f> decrease brownian force\n");
+    printf("      <c> ask a thread to close nua in 5 s\n");
+}
+
 int main(int argc, char ** argv)
 {
     srand(time(NULL));
@@ -610,11 +633,13 @@ int main(int argc, char ** argv)
      * Brownian movements. */
     nua->user_handle = nua_demo_ui;
     nua->user_data = nuad;
+    /* show extra user interactions enabled */
+    nuad_print_usage(nuad);
 
-    /* Start your calculations in a thread */
+    /* Start some calculations in a thread */
     nuademo_start_calc(nuad);
 
-    /* Show the window, user interactions enabled */
+    /* Show the window */
     nua_run(nua);
 
     /* We get here if the window was closed */
@@ -623,6 +648,9 @@ int main(int argc, char ** argv)
     /* Stop your calculations */
     nuademo_stop_calc(nuad);
     nuademo_free(nuad);
+
+    /* Wait for this thread if it is running */
+    pthread_join(nuad->timeout_thread, NULL);
 
     printf("Peak memory: %zu kb\n", get_peakMemoryKB());
     return 0;

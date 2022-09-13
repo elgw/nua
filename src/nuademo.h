@@ -62,10 +62,17 @@ typedef struct
 
     int worker_quit;
     pthread_t worker_thread;
+    pthread_t timeout_thread;
     pthread_cond_t worker_cond;
     pthread_mutex_t worker_mutex;
 
 } nuademo_t;
+
+/* Just to test/demonstrate that nua can be closed from a thread
+ * Most likely your calculation thread should call this when done unless
+ * you want the GUI to stay open.
+ */
+void * close_nua_from_thread(void * data);
 
 /* Initialize data structures for the demo */
 nuademo_t * nuademo_new(void);

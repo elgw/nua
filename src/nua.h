@@ -180,6 +180,9 @@ nua_t * nua_new();
 /* Do some validation on the object and then start the thing */
 void nua_run(nua_t * p);
 
+/* Tell nua to close (from your calculation thread?) */
+void nua_close(nua_t * p);
+
 /* Free up. Todo: close window if called from thread. */
 void nua_destroy(nua_t * p);
 

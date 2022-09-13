@@ -112,7 +112,7 @@ nua_t * nua_new()
 void nua_show_usage(UNUSED nua_t * p)
 {
     printf(
-        " User interface:\n"
+        " nua user interface:\n"
         "      <q>  quit                       <F11>  toggle fullscreen    \n"
         "      <t>  zoom in                     <g>  zoom out              \n"
         "      <1>  show/hide domain            <2>  show/hide links       \n"
@@ -1424,6 +1424,13 @@ void handle_SDL_event(nua_t * p,  SDL_Event e)
     {
         p->user_handle(e, p->user_data);
     }
+    return;
+}
+
+void nua_close(nua_t * n)
+{
+    n->quit = 1;
+    nua_redraw(n);
     return;
 }
 
