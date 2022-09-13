@@ -114,18 +114,19 @@ nua_t * nua_new()
     p->n_image_view_create = 0;
     p->n_image_view_destroy = 0;
 
+
     return p;
 }
 
 void nua_show_usage(UNUSED nua_t * p)
 {
     printf(
-           " User interface:\n"
-           "      <q>  quit                       <F11>  toggle fullscreen    \n"
-           "      <t>  zoom in                     <g>  zoom out              \n"
-           "      <1>  show/hide domain            <2>  show/hide links       \n"
-           "      <3>  show/hide beads                                        \n"
-           "      <0>  toggle projection type                                 \n");
+        " User interface:\n"
+        "      <q>  quit                       <F11>  toggle fullscreen    \n"
+        "      <t>  zoom in                     <g>  zoom out              \n"
+        "      <1>  show/hide domain            <2>  show/hide links       \n"
+        "      <3>  show/hide beads                                        \n"
+        "      <0>  toggle projection type                                 \n");
     return;
 }
 
@@ -831,7 +832,7 @@ void create_render_pass(nua_t * p)
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
-        subpass.pDepthStencilAttachment = &depthAttachmentRef; // For depth buffer
+    subpass.pDepthStencilAttachment = &depthAttachmentRef; // For depth buffer
     subpass.pResolveAttachments = &colorAttachmentResolveRef; // For MSAA
 
     VkSubpassDependency dependency = {};
@@ -1281,7 +1282,7 @@ void draw_frame(nua_t * p)
     }
 
 
- fail: ;
+fail: ;
     p->current_frame = (p->current_frame + 1) % p->frames_in_flight;
 }
 
@@ -1309,32 +1310,64 @@ void handle_SDL_event(nua_t * p,  SDL_Event e)
 
     if(e.type == SDL_MOUSEBUTTONDOWN)
     {
+        int x = 0; int y = 0;
+
+        SDL_GetMouseState(&x, &y);
+        //printf("x: %d, y: %d\n", x, y);
+        p->mousex = x;
+        p->mousey = y;
+        p->zoom0 = p->zoom;
+
+        //printf("e.button: %d\n", e.button.button);
         if(e.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
         {
-            p->mousex = e.motion.x;
-            p->mousey = e.motion.y;
+            SDL_Cursor *cur = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+            SDL_SetCursor(cur);
             p->rotx0 = p->rotx;
             p->roty0 = p->roty;
+        }
+
+        if(e.button.button != SDL_BUTTON(SDL_BUTTON_RIGHT))
+        {
+            SDL_Cursor *cur = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
+            SDL_SetCursor(cur);
         }
     }
 
     if(e.type == SDL_MOUSEBUTTONUP)
     {
+        // Drag ended
+        SDL_Cursor *cur = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+        SDL_SetCursor(cur);
+
         if(e.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
         {
-            //printf("Drag ended\n");
 
         }
     }
 
     if (e.type == SDL_MOUSEMOTION)
     {
-        if(e.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
+
+        if(e.motion.state & SDL_BUTTON_LMASK)
         {
             //printf("e.motion.x = %d, e.motion.y = %d\n",
             //e.motion.x, e.motion.y);
             p->rotx = p->rotx0 + (float) (e.motion.x - p->mousex)/winscale*200.0;
             p->roty = p->roty0 + (float) (e.motion.y - p->mousey)/winscale*200.0;
+        }
+
+        if(e.motion.state & SDL_BUTTON_RMASK)
+        {
+            float v = (float) (e.motion.y-p->mousey)/winscale*3.0;
+            if(v > 0)
+            {
+                p->zoom = p->zoom0*(1+v);
+            }
+            else
+            {
+                p->zoom = p->zoom0/(1-v);
+            }
         }
     }
     if( e.type == SDL_KEYDOWN )
@@ -1430,6 +1463,10 @@ void nua_main_loop(nua_t * p)
     {
         printf("Starting main loop\n");
     }
+
+    SDL_Cursor *cur = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    SDL_SetCursor(cur);
+
 
     draw_frame(p);
     p->nframes = 0;
@@ -1570,9 +1607,9 @@ void end_single_time_commands(nua_t * p, VkCommandBuffer commandBuffer)
 }
 
 void copy_buffer(nua_t * p,
-                VkBuffer srcBuffer,
-                VkBuffer dstBuffer,
-                VkDeviceSize size)
+                 VkBuffer srcBuffer,
+                 VkBuffer dstBuffer,
+                 VkDeviceSize size)
 {
     VkCommandBuffer commandBuffer = begin_single_time_commands(p);
 
@@ -1631,13 +1668,13 @@ void transition_image_layout(nua_t * p,
     }
 
     vkCmdPipelineBarrier(
-                         commandBuffer,
-                         sourceStage, destinationStage,
-                         0,
-                         0, NULL,
-                         0, NULL,
-                         1, &barrier
-                         );
+        commandBuffer,
+        sourceStage, destinationStage,
+        0,
+        0, NULL,
+        0, NULL,
+        1, &barrier
+        );
 
     end_single_time_commands(p, commandBuffer);
 }
@@ -1669,13 +1706,13 @@ void copy_buffer_to_image(nua_t * p,
 
 
     vkCmdCopyBufferToImage(
-                           commandBuffer,
-                           buffer,
-                           image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                           1,
-                           &region
-                           );
+        commandBuffer,
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region
+        );
 
     end_single_time_commands(p, commandBuffer);
 }
@@ -1698,10 +1735,10 @@ void create_uniform_buffers(nua_t * p)
 
     for (int kk = 0; kk < p->frames_in_flight; kk++) {
         create_buffer(p->vkPDevice, p->vkDevice,
-                     bufferSize,
-                     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                     &p->uniformBuffers[kk], &p->uniformBuffersMemory[kk]);
+                      bufferSize,
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      &p->uniformBuffers[kk], &p->uniformBuffersMemory[kk]);
         p->n_create_buffer++;
     }
     return;
@@ -1846,8 +1883,8 @@ void create_image(nua_t * p,
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = find_memory_type(p->vkPDevice,
-                                               memRequirements.memoryTypeBits,
-                                               properties);
+                                                 memRequirements.memoryTypeBits,
+                                                 properties);
 
     p->n_allocate_memory++;
     if (vkAllocateMemory(p->vkDevice, &allocInfo, NULL, imageMemory) != VK_SUCCESS) {

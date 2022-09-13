@@ -103,6 +103,7 @@ typedef struct nua {
     float roty0;
     float rotx;
     float roty;
+    float zoom0;
 
     volatile int data_changed; // set to 1 to let nua update the data
     /* A SDL event number for changes in data that should trigger a

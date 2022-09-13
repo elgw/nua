@@ -74,6 +74,14 @@ demo_data_t * demo_data_new(int n_beads, int n_links)
         printf("Creating demo data with %d beads and %d links\n",
                n_beads, n_links);
     }
+    if(n_beads < 2)
+    {
+        if(n_links > 0)
+        {
+            printf("Impossible to have links with < 2 beads\n");
+            exit(EXIT_FAILURE);
+        }
+    }
     demo_data_t * D = malloc(sizeof(demo_data_t));
     D->n_beads = n_beads;
     D->n_links = n_links;
