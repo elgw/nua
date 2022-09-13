@@ -28,20 +28,23 @@ Chimera has way more features (use it!) but is also more resource hungry.
    RAM and 132 MiB of GPU memory.
  - RAM usage was measured by `cat /proc/<PID>/status | grep VmPeak`
    and GPU Memory usage from `nvidia-smi`.
+ - Both chimera and nua use about 0% CPU and GPU when the graphics
+   isn't updating.
 
 Some overall goals for this project are:
  - Keep the resource usage low.
  - Be easy to integrate.
  - Support both Mac and Linux (yet to be adapted for mac).
- - Eventually, provide a stable API and some documentation.
+ - Eventually, provide a stable API and some documentation (TODO).
+ - Only rely on packages from the Ubuntu Package archive (i.e. that
+   can be installed with **apt**, kazmath does not fulfill that at the moment).
 
-The implementation is based on
-[SDL2](https://www.libsdl.org/) using
-[Vulkan 1.3](https://www.vulkan.org/) for the graphics (thanks to the
-great Vulkan tutorial on
-[https://vulkan-tutorial.com/]!).
+The implementation uses
+[SDL2](https://www.libsdl.org/) which in turn uses
+[Vulkan 1.3](https://www.vulkan.org/) for the graphics.
 Linear algebra is handled by
 [Kazmath](https://github.com/Kazade/kazmath)
+and chimera marker files are parsed by libxml2.
 
 ## Example usage
 
@@ -76,6 +79,7 @@ computations are paused and the CPU usage is close to 0%.
     /* Stop your calculations */
     ...
 ```
+For the bare minimal usage see the folder **minimal_demo/**.
 
 ## Installation
 
@@ -90,7 +94,8 @@ sudo apt-get install vulkan-validationlayers
 sudo apt install glslang-tools
 ```
 
-To get kazmath (TODO: remove this dependency).
+kazmath isn't in the Ubuntu Package archive (yet) and has to be
+installed manually. This worked for me:
 
 ``` shell
 sudo apt install python2
@@ -127,18 +132,15 @@ layers (which you would have to enable manually).
 
 ## Status
 
-### to do
- - [ ] add installation procedures and package creation to the makefile.
- - [ ] Read data from csv files.
- - [ ] option to close nua from thread (on calculations finished) and
-       not just via the GUI.
+At the moment it does what I want it to do. Possible improvements and new
+features could include:
 
-### possibly
+ - [ ] Read data from csv files.
  - [ ] Add a keyboard shortcut to pause uploading new data to the GPU.
  - [ ] Adopt viewport to data (currently only views a unit cube).
  - [ ] FPS limiter, only update data/redraw every m ms.
  - [ ] One model matrix per model :)
-- [ ] Add a `NUA_OBJECT_GENERAL` for any mesh ... would make nua a
+ - [ ] Add a `NUA_OBJECT_GENERAL` for any mesh ... would make nua a
       little more useful as a library.
  - [ ] Proper Phong lighting
  - [ ] Enable fillModeNonSolid: `VkPhysicalDeviceFeatures->fillModeNonSolid is false. The Vulkan spec states: If the fillModeNonSolid feature is not enabled`
@@ -146,8 +148,8 @@ layers (which you would have to enable manually).
  - [ ] Steal some ideas from chimera, especially look at their shaders in `UCSF-Chimera64-1.14/share/Shaders/`.
  - [ ] animate / auto-rotate?
  - [ ] Switch to more refined bead model on zoom-in?
- - [ ] Improve GUI (right mouse button for zooming, explode view, etc ...)
- - [ ] Choose a library for image generation and text rendering,
+ - [ ] Improve GUI (explode view, etc ...)
+ - [ ] Add some text rendering, possible libraries unless it is done directly in Vulkan:
        [LibGD](https://libgd.github.io/),
        [cairo](https://www.cairographics.org/) or simply what is
        already in
@@ -155,7 +157,7 @@ layers (which you would have to enable manually).
  - [ ] run without MSAA? Also check out [FXAA](https://github.com/DadSchoorse/vkBasalt)
  - [ ] Only draw half+ spheres and orient them to face camera to save on faces/vertices
  - [ ] Mouse coordinates as uniform? For some fun ....
- - [ ] GPU selection on multiple-GPU systems.
+ - [ ] Smarter GPU selection on multiple-GPU systems.
 
 ## References
  - [shadergif.com](https://shadergif.com/) and [shadertoys.com](https://shadertoy.com/) for fun and smart shaders.
@@ -170,3 +172,4 @@ Libraries:
  - [SDL2](https://www.libsdl.org/)
  - [Vulkan](https://www.vulkan.org/)
  - [Kazmath](https://github.com/Kazade/kazmath)
+ - [libxml2](https://gitlab.gnome.org/GNOME/libxml2)
