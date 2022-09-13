@@ -1,11 +1,9 @@
 #include "nua_object.h"
 
-/* Note: should be included from the source, not the header file. */
-// #define STB_IMAGE_IMPLEMENTATION
-// #include <stb_image.h>
-
 #ifndef __shaders_h__
 #define __shaders_h__
+/* Include compiled shaders in the binary.  Only used if
+ * frag_shader_file and vert_shader_file can't be used */
 #include "../shaders/shader_ball_frag.spv.h"
 #include "../shaders/shader_ball_vert.spv.h"
 #include "../shaders/shader_connect_frag.spv.h"
@@ -14,10 +12,10 @@
 #include "../shaders/shader_domain_vert.spv.h"
 #endif
 
-
-
-nua_obj_t * nua_obj_new(nua_t * p, nua_obj_type otype,
-                        int nobjects, float * object_data)
+nua_obj_t * nua_obj_new(nua_t * p,
+                        nua_obj_type otype,
+                        int nobjects,
+                        float * object_data)
 {
     if(p->verbose > 2)
     {
@@ -236,8 +234,6 @@ void nua_obj_update_pos(nua_t * p, nua_obj_t * v)
     vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
     p->n_destroy_buffer++;
     vkDestroyBuffer(p->vkDevice, stagingBuffer, NULL);
-
-
 
     return;
 }

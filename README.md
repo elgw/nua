@@ -117,17 +117,16 @@ layers (which you would have to enable manually).
 ## Status
 
 ### to do
+ - [ ] add installation procedures and package creation to the makefile.
  - [ ] Zoom in / out using right mouse button.
  - [ ] Add a keyboard shortcut to pause uploading new data to the GPU.
  - [ ] Read data from csv files.
  - [ ] Adopt viewport to data (currently only views a unit cube).
  - [ ] FPS limiter, only update data/redraw every m ms.
- - [ ] add installation procedures and package creation to the makefile.
  - [ ] One model matrix per model :)
  - [ ] option to close nua from thread (on calculations finished) and
        not just via the GUI.
- - [ ] include spv in library (`xxd -i` or similar).
-
+ - [ ] Add a `NUA_OBJECT_GENERAL` for any mesh ...
 
 ### possibly
  - [ ] Proper Phong lighting

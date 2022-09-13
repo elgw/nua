@@ -52,86 +52,91 @@ typedef struct  {
 } UniformBufferObject;
 
 /* Todo: factor into vulkan, objects and general program settings */
-typedef struct prog {
+typedef struct nua {
     /*
      * General settings typically parsed from command line
+     * or changed by user interactions
      */
+
+    // default 1. 0 should be quiet. 2 and above for debugging
     int verbose;
-    // Quit after first frame, for debugging
+    // set to 1 to quit after first frame, for debugging
     int oneframe;
     // set to 0 to disable any validation layers
     int validation_layers;
     float zoom;
     int fullscreen;
-    int quit; // indicate that it is time to quit
-    volatile int data_changed; // set to 1 to let nua update the data
-    size_t nframes;
-
-    /* Projection type: TODO: enum */
-    int proj_ortho;
-
-    /* Handler to custom event callback function */
-    void (*user_handle) (SDL_Event , void *);
-    void * user_data;
-
-    /* A SDL event number for changes in data that should trigger a
-     * coordinate transfer to the GPU */
-    uint32_t data_changed_event;
-    int msaa_want;
-    int pause;
-    int spherediv;
-    int linkdiv;
-
-    int nbeads;
-    float * bead_data; // TODO to use
-
-    int nlinks;
-    float * link_data;
-
-    nua_obj_t * balls;
-    nua_obj_t * links;
-    nua_obj_t * domain;
-
+    int quit; /* set to 1 to indicate that it is time to quit */
+    int proj_ortho;    /* Projection type: TODO: enum */
     int show_domain;
     int show_links;
     int show_beads;
+    /* Visual quality */
+    int msaa_want;
+    int spherediv;
+    int linkdiv;
+    int pause; // not used
 
+    /* Book keeping */
     struct timespec time_start;
+    size_t nframes; /* Number of frames that has been drawn */
 
     size_t n_allocate_memory;
     size_t n_free_memory;
-    // vkCreateBuffer
     size_t n_create_buffer;
-    //vkDestroyBuffer
     size_t n_destroy_buffer;
     size_t n_image_create;
     size_t n_image_destroy;
     size_t n_image_view_create;
     size_t n_image_view_destroy;
 
+    /*
+     * User interactions and events
+     */
+    /* Handler to custom event callback function */
+    void (*user_handle) (SDL_Event , void *);
+    void * user_data;
     /* Mouse position at beginning of mouse press and drag */
     int mousex;
     int mousey;
-
     float rotx0;
     float roty0;
     float rotx;
     float roty;
 
+    volatile int data_changed; // set to 1 to let nua update the data
+    /* A SDL event number for changes in data that should trigger a
+     * coordinate transfer to the GPU */
+    uint32_t data_changed_event;
+
+
+    /*
+     * Graphical objects
+     */
+    int nbeads; /* Number of instances */
+    float * bead_data; /* Instancing data */
+
+    int nlinks; /* Number of instances */
+    float * link_data; /* Instancing data */
+
+    nua_obj_t * balls;
+    nua_obj_t * links;
+    nua_obj_t * domain;
+
     /*
      * Vulkan context, Shared between all graphical objects
      */
+    SDL_Window * window;
+    VkPhysicalDevice vkPDevice; // Destroyed with the vkInstance
+    VkDevice vkDevice; // logical device
     VkBuffer * uniformBuffers;
     VkDeviceMemory * uniformBuffersMemory;
     uint32_t current_frame;
     int frames_in_flight;
     int framebuffer_resized;
-    SDL_Window * window;
     int vkEnableValidationLayers;
     VkInstance vkInstance;
-    VkPhysicalDevice vkPDevice; // Destroyed with the vkInstance
     queue_family_indexes_t queue_fami;
-    VkDevice vkDevice; // logical device
     VkSurfaceKHR vkSurface;
     VkQueue vkGraphicsQueue;
     VkQueue vkPresentQueue;
