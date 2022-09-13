@@ -48,10 +48,10 @@ and chimera marker files are parsed by libxml2.
 
 ## Example usage
 
-For a complete example, see `nuademo.c` where *nua* is used to monitor
-some toy calculations (Brownian motion without collision detection)
-done one the data in a separate thread. When the Brownian step length
-is set to 0 (starts at 0, increase with 't' and decrease with 'g') the
+For a complete example, see **nuademo.c** where *nua* is used to
+monitor some toy calculations running in a separate thread (Brownian
+motion without collision detection). When the Brownian step length is
+set to 0 (starts at 0, increases with 't' and decreases by 'g') the
 computations are paused and the CPU usage is close to 0%.
 
 ``` C
@@ -79,15 +79,17 @@ computations are paused and the CPU usage is close to 0%.
     /* Stop your calculations */
     ...
 ```
-For the bare minimal usage see the folder **minimal_demo/**.
 
-## Installation
+For an example of how to use the library, once installed, see the folder **minimal_demo**.
 
-Only tested on Ubuntu 22.04.01 LTS so far. Besides installing gcc etc
-this was needed:
+## Build and install
 
-Preparations:
-```
+Only tested on Ubuntu 22.04.01 LTS so far.
+
+### Dependencies
+Besides installing gcc etc this was needed:
+
+``` shell
 sudo apt-get install libsdl2-dev libsdl2-image-dev
 sudo apt-get install vulkan-validationlayers
 # for shader compilation with glslangValidator
@@ -108,7 +110,7 @@ make
 sudo make install
 ```
 
-To build and run the demo:
+### Build and run the demo
 
 ``` shell
 make
@@ -116,7 +118,7 @@ LD_LIBRARY_PATH=LD_LIBRARY_PATH:`pwd`
 ./nuademo --help
 ```
 
-To build and install
+### Build the library as deb package and install it
 
 ``` shell
 make
@@ -126,11 +128,7 @@ sudo apt-get install ./libnua_0.0.2_amd64.deb
 # sudo apt-get remove libnua
 ```
 
-If you plan to play with the code It might make sense to install the SDK from
-[lunarg](https://vulkan.lunarg.com/sdk/home#linux) for extra validation
-layers (which you would have to enable manually).
-
-## Status
+## Development status
 
 At the moment it does what I want it to do. Possible improvements and new
 features could include:
@@ -158,6 +156,10 @@ features could include:
  - [ ] Only draw half+ spheres and orient them to face camera to save on faces/vertices
  - [ ] Mouse coordinates as uniform? For some fun ....
  - [ ] Smarter GPU selection on multiple-GPU systems.
+
+If you plan to play with the code It might make sense to install the SDK from
+[lunarg](https://vulkan.lunarg.com/sdk/home#linux) for extra validation
+layers (which you would have to enable manually).
 
 ## References
  - [shadergif.com](https://shadergif.com/) and [shadertoys.com](https://shadertoy.com/) for fun and smart shaders.
