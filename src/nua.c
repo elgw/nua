@@ -1,13 +1,4 @@
-#include <assert.h>
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "nua.h"
-
-#define UNUSED __attribute__((unused))
-
 
 void nua_setup_graphics(nua_t * p)
 {
@@ -240,6 +231,7 @@ static int resizingEventWatcher(void* data, SDL_Event* event) {
 void setup_SDL(nua_t * p)
 {
     SDL_Init(SDL_INIT_VIDEO);
+
     p->data_changed_event = SDL_RegisterEvents(1);
 
     p->window = SDL_CreateWindow("nua",
@@ -253,6 +245,7 @@ void setup_SDL(nua_t * p)
     {
         printf("SDL Window created\n");
     }
+    IMG_Init(IMG_INIT_PNG);
 }
 
 
@@ -696,6 +689,7 @@ void nua_destroy_graphics(nua_t * p)
     vkDestroySurfaceKHR(p->vkInstance, p->vkSurface, NULL);
     vkDestroyInstance(p->vkInstance, NULL);
     SDL_Vulkan_UnloadLibrary();
+    IMG_Quit();
     SDL_Quit();
 
     if(p->verbose > 1)

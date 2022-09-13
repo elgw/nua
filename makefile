@@ -9,8 +9,10 @@ CFLAGS+=-O3 -march=native -DNDEBUG
 LDFLAGS+=-flto
 endif
 
+# SDL2
 CFLAGS+=`sdl2-config --cflags`
 LDFLAGS+=`sdl2-config --libs`
+LDFLAGS+=-lSDL2_image
 
 CFLAGS+=`pkg-config vulkan --cflags`
 LDFLAGS+=`pkg-config vulkan --libs`

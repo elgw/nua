@@ -311,6 +311,11 @@ void nua_obj_free(nua_obj_t * v, nua_t * p)
     free(v->frag_shader_file);
     free(v->vert_shader_file);
     free(v->data);
+    if(v->otype == NUA_OBJECT_DOMAIN)
+    {
+        free(v->instance_data);
+    }
+
     free(v->indices);
     free(v->attribDescriptions);
     nua_obj_destroy_graphics_pipeline(p, v);

@@ -1,10 +1,13 @@
 #ifndef __nua_h__
 #define __nua_h__
 
+#define UNUSED __attribute__((unused))
+
 #define sampler_test 1
 
 #include <assert.h>
 #include <getopt.h>
+#include <math.h>
 #include <signal.h> // for gdb/raise(SIGINT)
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,6 +17,7 @@
 
 #include <SDL.h>
 #include <SDL_vulkan.h>
+#include <SDL_image.h>
 #include <vulkan/vulkan.h>
 #include <kazmath/kazmath.h>
 

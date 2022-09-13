@@ -159,6 +159,7 @@ void demo_data_free(demo_data_t * D)
 {
     free(D->beads);
     free(D->links);
+    free(D->link_ids);
     free(D);
 }
 

@@ -84,6 +84,7 @@ this was needed:
 
 Preparations:
 ```
+sudo apt-get install libsdl2-dev libsdl2-image-dev
 sudo apt-get install vulkan-validationlayers
 # for shader compilation with glslangValidator
 sudo apt install glslang-tools
@@ -118,17 +119,17 @@ layers (which you would have to enable manually).
 
 ### to do
  - [ ] add installation procedures and package creation to the makefile.
- - [ ] Zoom in / out using right mouse button.
- - [ ] Add a keyboard shortcut to pause uploading new data to the GPU.
  - [ ] Read data from csv files.
+ - [ ] option to close nua from thread (on calculations finished) and
+       not just via the GUI.
+
+### possibly
+ - [ ] Add a keyboard shortcut to pause uploading new data to the GPU.
  - [ ] Adopt viewport to data (currently only views a unit cube).
  - [ ] FPS limiter, only update data/redraw every m ms.
  - [ ] One model matrix per model :)
- - [ ] option to close nua from thread (on calculations finished) and
-       not just via the GUI.
- - [ ] Add a `NUA_OBJECT_GENERAL` for any mesh ...
-
-### possibly
+- [ ] Add a `NUA_OBJECT_GENERAL` for any mesh ... would make nua a
+      little more useful as a library.
  - [ ] Proper Phong lighting
  - [ ] Enable fillModeNonSolid: `VkPhysicalDeviceFeatures->fillModeNonSolid is false. The Vulkan spec states: If the fillModeNonSolid feature is not enabled`
  - [ ] Light intensity that depends on the distance to the eye.
