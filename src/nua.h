@@ -24,8 +24,8 @@
 #include "nua_vkutil.h"
 #include "nua_version.h"
 
-struct vertex;
-typedef struct vertex vertex_t;
+struct nua_obj;
+typedef struct nua_obj nua_obj_t;
 
 typedef struct {
     uint32_t graphics; // vkQueueFamilyIndex;
@@ -88,9 +88,9 @@ typedef struct prog {
     int nlinks;
     float * link_data;
 
-    vertex_t * balls;
-    vertex_t * links;
-    vertex_t * domain;
+    nua_obj_t * balls;
+    nua_obj_t * links;
+    nua_obj_t * domain;
 
     int show_domain;
     int show_links;
@@ -198,8 +198,8 @@ void recreate_swap_chain(nua_t * p);
 void create_image_views(nua_t * p);
 void destroy_image_views(nua_t * p);
 
-void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v);
-void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v);
+void vertex_create_graphics_pipeline(nua_t * p, nua_obj_t * v);
+void vertex_destroy_graphics_pipeline(nua_t * p, nua_obj_t * v);
 
 void create_sync_objects(nua_t * p);
 void destroy_sync_objects(nua_t * p);

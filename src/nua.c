@@ -34,17 +34,17 @@ void nua_run(nua_t * p)
     p->balls = NULL;
     if(p->bead_data != NULL && p->nbeads > 0)
     {
-        p->balls = vertex_new(p, VERTEX_BALL, p->nbeads, p->bead_data);
+        p->balls = nua_obj_new(p, NUA_OBJECT_BALL, p->nbeads, p->bead_data);
     }
     /* Add Links */
     p->links = NULL;
     if(p->link_data != NULL && p->nlinks > 0)
     {
-        p->links = vertex_new(p, VERTEX_CONNECT, p->nlinks, p->link_data);
+        p->links = nua_obj_new(p, NUA_OBJECT_CONNECT, p->nlinks, p->link_data);
     }
     /* Add geometry */
     p->domain = NULL;
-    p->domain = vertex_new(p, VERTEX_DOMAIN, 0, NULL);
+    p->domain = nua_obj_new(p, NUA_OBJECT_DOMAIN, 0, NULL);
 
     nua_main_loop(p);
     return;
@@ -55,15 +55,15 @@ void nua_destroy(nua_t * p)
     /* Clean up spheres*/
     if(p->balls != NULL)
     {
-        vertex_free(p->balls, p);
+        nua_obj_free(p->balls, p);
     }
     if(p->links != NULL)
     {
-        vertex_free(p->links, p);
+        nua_obj_free(p->links, p);
     }
     if(p->domain != NULL)
     {
-        vertex_free(p->domain, p);
+        nua_obj_free(p->domain, p);
     }
 
     /* Cleanup graphics  */
@@ -1043,15 +1043,15 @@ void record_command_buffer(nua_t * p, uint32_t imageIndex)
 
     if(p->show_domain)
     {
-        vertex_record_command_buffer(p, p->domain);
+        nua_obj_record_command_buffer(p, p->domain);
     }
     if(p->show_beads)
     {
-        vertex_record_command_buffer(p, p->balls);
+        nua_obj_record_command_buffer(p, p->balls);
     }
     if(p->show_links)
     {
-        vertex_record_command_buffer(p, p->links);
+        nua_obj_record_command_buffer(p, p->links);
     }
 
     vkCmdEndRenderPass(p->commandBuffers[p->current_frame]);
@@ -1438,8 +1438,8 @@ void nua_main_loop(nua_t * p)
         handle_user_interaction(p);
         if(p->data_changed)
         {
-            vertex_update_pos(p, p->balls);
-            vertex_update_pos(p, p->links);
+            nua_obj_update_pos(p, p->balls);
+            nua_obj_update_pos(p, p->links);
             nua_redraw(p);
             p->data_changed = 0;
         }

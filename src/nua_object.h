@@ -23,19 +23,19 @@
 
 
 /* The three types of object that can be created */
-enum vertex_type_{
-    VERTEX_BALL,
-    VERTEX_CONNECT,
-    VERTEX_DOMAIN
+enum nua_obj_type_{
+    NUA_OBJECT_BALL,
+    NUA_OBJECT_CONNECT,
+    NUA_OBJECT_DOMAIN
 };
 
-typedef enum vertex_type_ vertex_type;
+typedef enum nua_obj_type_ nua_obj_type;
 
 struct prog;
 typedef struct prog nua_t;
 
-typedef struct vertex {
-    vertex_type vtype;
+typedef struct nua_obj {
+    nua_obj_type otype;
     float * data;
     uint32_t * indices;
     size_t nindices;
@@ -82,37 +82,44 @@ typedef struct vertex {
     /* Add vkDevice? -- would solve most references to p*/
     /* verbose  */
 
-} vertex_t;
+} nua_obj_t;
 
-vertex_t * vertex_new(nua_t * p, vertex_type type, int nobjects, float * object_data);
-void vertex_free(vertex_t * v, nua_t * p);
+nua_obj_t * nua_obj_new(nua_t * p,
+                      nua_obj_type otype,
+                      int nobjects,
+                      float * object_data);
 
-void vertex_update_pos(nua_t * p, vertex_t * v);
-void vertex_create_bindings(vertex_t * v);
-void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v);
-void vertex_destroy_vertex_buffer(nua_t * p, vertex_t * v);
-void vertex_destroy_index_buffer(nua_t * p, vertex_t * v);
-void vertex_destroy_vertex_instance_buffer(nua_t * p, vertex_t * v);
-void vertex_record_command_buffer(nua_t * p, vertex_t * v);
+void nua_obj_free(nua_obj_t * v, nua_t * p);
 
-void vertex_create_descriptor_sets(nua_t * p, vertex_t * v);
-void vertex_create_vertex_instance_buffer(nua_t * p, vertex_t * v);
-void vertex_create_vertex_buffer(nua_t * p, vertex_t * v);
-void vertex_create_index_buffer(nua_t * p, vertex_t * v);
-void vertex_create_descriptor_set_layout(nua_t * p, vertex_t * v);
-void vertex_create_descriptor_set_layout(nua_t * p, vertex_t * v);
-void vertex_destroy_descriptor_sets(nua_t * p, vertex_t * v);
+void nua_obj_update_pos(nua_t * p, nua_obj_t * v);
+void nua_obj_create_bindings(nua_obj_t * v);
+
+void nua_obj_create_graphics_pipeline(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_graphics_pipeline(nua_t * p, nua_obj_t * v);
+
+void nua_obj_destroy_vertex_buffer(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_index_buffer(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_vertex_instance_buffer(nua_t * p, nua_obj_t * v);
+void nua_obj_record_command_buffer(nua_t * p, nua_obj_t * v);
+
+void nua_obj_create_descriptor_sets(nua_t * p, nua_obj_t * v);
+void nua_obj_create_vertex_instance_buffer(nua_t * p, nua_obj_t * v);
+void nua_obj_create_vertex_buffer(nua_t * p, nua_obj_t * v);
+void nua_obj_create_index_buffer(nua_t * p, nua_obj_t * v);
+void nua_obj_create_descriptor_set_layout(nua_t * p, nua_obj_t * v);
+void nua_obj_create_descriptor_set_layout(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_descriptor_sets(nua_t * p, nua_obj_t * v);
 
 
-void vertex_create_texture_image(nua_t * p, vertex_t * v);
-void vertex_destroy_texture_image_view(nua_t * p, vertex_t * v);
-void vertex_create_texture_image_view(nua_t * p, vertex_t * v);
-void vertex_destroy_texture_image(nua_t * p, vertex_t * v);
-void vertex_destroy_texture_sampler(nua_t * p, vertex_t * v);
-void vertex_create_texture_sampler(nua_t * p, vertex_t * v);
+void nua_obj_create_texture_image(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_texture_image_view(nua_t * p, nua_obj_t * v);
+void nua_obj_create_texture_image_view(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_texture_image(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_texture_sampler(nua_t * p, nua_obj_t * v);
+void nua_obj_create_texture_sampler(nua_t * p, nua_obj_t * v);
 
-void vertex_create_descriptor_pool(nua_t * p, vertex_t * v);
-void vertex_destroy_descriptor_pool(nua_t * p, vertex_t * v);
-void vertex_destroy_command_pool(nua_t * p, vertex_t * v);
+void nua_obj_create_descriptor_pool(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_descriptor_pool(nua_t * p, nua_obj_t * v);
+void nua_obj_destroy_command_pool(nua_t * p, nua_obj_t * v);
 
 #endif

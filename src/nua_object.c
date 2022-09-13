@@ -16,16 +16,16 @@
 
 
 
-vertex_t * vertex_new(nua_t * p, vertex_type vtype,
-                      int nobjects, float * object_data)
+nua_obj_t * nua_obj_new(nua_t * p, nua_obj_type otype,
+                        int nobjects, float * object_data)
 {
     if(p->verbose > 2)
     {
-        printf(" -> vertex_new, %d objects\n", nobjects);
+        printf(" -> nua_obj_new, %d instances\n", nobjects);
     }
 
-    vertex_t * v = calloc(1, sizeof(vertex_t));
-    v->vtype = vtype;
+    nua_obj_t * v = calloc(1, sizeof(nua_obj_t));
+    v->otype = otype;
     v->spherediv = p->spherediv;
     v->linkdiv = p->linkdiv;
     v->ninstances = nobjects;
@@ -33,9 +33,9 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
     v->vert_shader_file = calloc(128,1);
 
 
-/* 1. Create primitive object */
+    /* 1. Create primitive object */
     vshape_t * shape = NULL;
-    if(vtype == VERTEX_BALL)
+    if(otype == NUA_OBJECT_BALL)
     {
         shape = vshape_sphere(v->spherediv);
         if(p->verbose > 1)
@@ -48,7 +48,7 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
         sprintf(v->vert_shader_file, "shaders/shader_ball_vert.spv");
     }
 
-    if(vtype == VERTEX_DOMAIN)
+    if(otype == NUA_OBJECT_DOMAIN)
     {
         v->ninstances = 1;
         shape = vshape_sphere(4);
@@ -62,7 +62,7 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
         sprintf(v->vert_shader_file, "shaders/shader_domain_vert.spv");
     }
 
-    if(vtype == VERTEX_CONNECT)
+    if(otype == NUA_OBJECT_CONNECT)
     {
         shape = vshape_tube(1, 1, v->linkdiv);
 
@@ -89,7 +89,7 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
     free(shape);
 
     /* 2. Create instance data */
-    if(vtype == VERTEX_CONNECT)
+    if(otype == NUA_OBJECT_CONNECT)
     {
         v->instance_data = object_data;
 #if 0
@@ -138,7 +138,7 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
 #endif
     }
 
-    if(vtype == VERTEX_BALL)
+    if(otype == NUA_OBJECT_BALL)
     {
         v->instance_data = object_data;
 #if 0
@@ -168,7 +168,7 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
 #endif
     }
 
-    if(vtype == VERTEX_DOMAIN)
+    if(otype == NUA_OBJECT_DOMAIN)
     {
         v->instance_data = calloc(7, sizeof(float));
         float * p = v->instance_data;
@@ -190,22 +190,22 @@ vertex_t * vertex_new(nua_t * p, vertex_type vtype,
     printf("Sum of instance data: %f\n", sum);
 #endif
 
-    vertex_create_vertex_buffer(p, v);
-    vertex_create_index_buffer(p, v);
-    vertex_create_vertex_instance_buffer(p, v);
-    vertex_create_texture_image(p, v); // after command pool
-    vertex_create_texture_image_view(p, v);
-    vertex_create_texture_sampler(p, v);
-    vertex_create_bindings(v);
-    vertex_create_descriptor_set_layout(p, v);
-    vertex_create_descriptor_pool(p, v);
-    vertex_create_descriptor_sets(p, v);
-    vertex_create_graphics_pipeline(p, v);
+    nua_obj_create_vertex_buffer(p, v);
+    nua_obj_create_index_buffer(p, v);
+    nua_obj_create_vertex_instance_buffer(p, v);
+    nua_obj_create_texture_image(p, v); // after command pool
+    nua_obj_create_texture_image_view(p, v);
+    nua_obj_create_texture_sampler(p, v);
+    nua_obj_create_bindings(v);
+    nua_obj_create_descriptor_set_layout(p, v);
+    nua_obj_create_descriptor_pool(p, v);
+    nua_obj_create_descriptor_sets(p, v);
+    nua_obj_create_graphics_pipeline(p, v);
     return v;
 }
 
 
-void vertex_update_pos(nua_t * p, vertex_t * v)
+void nua_obj_update_pos(nua_t * p, nua_obj_t * v)
 {
     if(v == NULL)
     {
@@ -242,7 +242,7 @@ void vertex_update_pos(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_create_bindings(vertex_t * v)
+void nua_obj_create_bindings(nua_obj_t * v)
 {
 
     v->nBindingDescriptions = 2;
@@ -296,7 +296,7 @@ void vertex_create_bindings(vertex_t * v)
     return;
 }
 
-void vertex_destroy_vertex_buffer(nua_t * p, vertex_t * v)
+void nua_obj_destroy_vertex_buffer(nua_t * p, nua_obj_t * v)
 {
     p->n_free_memory++;
     if(p->verbose > 2)
@@ -310,22 +310,22 @@ void vertex_destroy_vertex_buffer(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_free(vertex_t * v, nua_t * p)
+void nua_obj_free(nua_obj_t * v, nua_t * p)
 {
     free(v->frag_shader_file);
     free(v->vert_shader_file);
     free(v->data);
     free(v->indices);
     free(v->attribDescriptions);
-    vertex_destroy_graphics_pipeline(p, v);
-    vertex_destroy_vertex_buffer(p, v);
-    vertex_destroy_index_buffer(p, v);
-    vertex_destroy_vertex_instance_buffer(p, v);
-    vertex_destroy_descriptor_sets(p, v);
-    vertex_destroy_texture_image(p, v);
-    vertex_destroy_texture_image_view(p, v);
-    vertex_destroy_texture_sampler(p, v);
-    vertex_destroy_descriptor_pool(p, v);
+    nua_obj_destroy_graphics_pipeline(p, v);
+    nua_obj_destroy_vertex_buffer(p, v);
+    nua_obj_destroy_index_buffer(p, v);
+    nua_obj_destroy_vertex_instance_buffer(p, v);
+    nua_obj_destroy_descriptor_sets(p, v);
+    nua_obj_destroy_texture_image(p, v);
+    nua_obj_destroy_texture_image_view(p, v);
+    nua_obj_destroy_texture_sampler(p, v);
+    nua_obj_destroy_descriptor_pool(p, v);
     free(v->bindingDescriptions);
     free(v);
     return;
@@ -336,11 +336,11 @@ void vertex_free(vertex_t * v, nua_t * p)
  * - binding and attribute descriptors
  */
 
-void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
+void nua_obj_create_graphics_pipeline(nua_t * p, nua_obj_t * v)
 {
     if(p->verbose > 1)
     {
-        printf("-> vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)\n");
+        printf("-> nua_obj_create_graphics_pipeline(nua_t * p, nua_obj_t * v)\n");
     }
     if(p->verbose > 2)
     {
@@ -353,21 +353,21 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
                                     v->vert_shader_file,
                                     p->verbose);
     } else {
-        if(v->vtype == VERTEX_BALL)
+        if(v->otype == NUA_OBJECT_BALL)
         {
             v->vertShader = shader_from_buffer(p->vkDevice,
                                                (uint32_t*) __shaders_shader_ball_vert_spv,
                                                __shaders_shader_ball_vert_spv_len/4,
                                                p->verbose);
         }
-        if(v->vtype == VERTEX_CONNECT)
+        if(v->otype == NUA_OBJECT_CONNECT)
         {
             v->vertShader = shader_from_buffer(p->vkDevice,
                                                (uint32_t*) __shaders_shader_connect_vert_spv,
                                                __shaders_shader_connect_vert_spv_len/4,
                                                p->verbose);
         }
-        if(v->vtype == VERTEX_DOMAIN)
+        if(v->otype == NUA_OBJECT_DOMAIN)
         {
             v->vertShader = shader_from_buffer(p->vkDevice,
                                                (uint32_t*) __shaders_shader_domain_vert_spv,
@@ -382,21 +382,21 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
                                     v->frag_shader_file,
                                     p->verbose);
     } else {
-        if(v->vtype == VERTEX_BALL)
+        if(v->otype == NUA_OBJECT_BALL)
         {
             v->fragShader = shader_from_buffer(p->vkDevice,
                                                (uint32_t*) __shaders_shader_ball_frag_spv,
                                                __shaders_shader_ball_frag_spv_len/4,
                                                p->verbose);
         }
-        if(v->vtype == VERTEX_CONNECT)
+        if(v->otype == NUA_OBJECT_CONNECT)
         {
             v->fragShader = shader_from_buffer(p->vkDevice,
                                                (uint32_t*) __shaders_shader_connect_frag_spv,
                                                __shaders_shader_connect_frag_spv_len/4,
                                                p->verbose);
         }
-        if(v->vtype == VERTEX_DOMAIN)
+        if(v->otype == NUA_OBJECT_DOMAIN)
         {
             v->fragShader = shader_from_buffer(p->vkDevice,
                                                (uint32_t*) __shaders_shader_domain_frag_spv,
@@ -489,17 +489,17 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
     rasterizer.lineWidth = 1.0f;
 
 
-    if(v->vtype == VERTEX_DOMAIN)
+    if(v->otype == NUA_OBJECT_DOMAIN)
     {
         rasterizer.cullMode = VK_CULL_MODE_NONE;;
     }
 
-    if(v->vtype == VERTEX_BALL)
+    if(v->otype == NUA_OBJECT_BALL)
     {
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     }
 
-    if(v->vtype == VERTEX_CONNECT)
+    if(v->otype == NUA_OBJECT_CONNECT)
     {
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     }
@@ -620,7 +620,7 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_destroy_index_buffer(nua_t * p, vertex_t * v)
+void nua_obj_destroy_index_buffer(nua_t * p, nua_obj_t * v)
 {
     p->n_destroy_buffer++;
     vkDestroyBuffer(p->vkDevice, v->indexBuffer, NULL);
@@ -629,7 +629,7 @@ void vertex_destroy_index_buffer(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_destroy_vertex_instance_buffer(nua_t * p, vertex_t * v)
+void nua_obj_destroy_vertex_instance_buffer(nua_t * p, nua_obj_t * v)
 {
     p->n_free_memory++;
     vkFreeMemory(p->vkDevice, v->instanceBufferMemory, NULL);
@@ -639,7 +639,7 @@ void vertex_destroy_vertex_instance_buffer(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_record_command_buffer(nua_t * p, vertex_t * v)
+void nua_obj_record_command_buffer(nua_t * p, nua_obj_t * v)
 {
     if(v == NULL)
     {
@@ -687,7 +687,7 @@ void vertex_record_command_buffer(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_create_vertex_instance_buffer(nua_t * p, vertex_t * v)
+void nua_obj_create_vertex_instance_buffer(nua_t * p, nua_obj_t * v)
 {
     if(p->verbose > 2)
     {
@@ -726,7 +726,7 @@ void vertex_create_vertex_instance_buffer(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_create_vertex_buffer(nua_t * p, vertex_t * v)
+void nua_obj_create_vertex_buffer(nua_t * p, nua_obj_t * v)
 {
     if(p->verbose > 2)
     {
@@ -772,7 +772,7 @@ void vertex_create_vertex_buffer(nua_t * p, vertex_t * v)
 }
 
 
-void vertex_create_index_buffer(nua_t * p, vertex_t * v)
+void nua_obj_create_index_buffer(nua_t * p, nua_obj_t * v)
 {
     VkDeviceSize bufferSize = sizeof(uint32_t)*v->nindices;
 
@@ -802,7 +802,7 @@ void vertex_create_index_buffer(nua_t * p, vertex_t * v)
     vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
 }
 
-void vertex_create_descriptor_set_layout(nua_t * p, vertex_t * v)
+void nua_obj_create_descriptor_set_layout(nua_t * p, nua_obj_t * v)
 {
     if(p->verbose > 2)
     {
@@ -863,7 +863,7 @@ void vertex_create_descriptor_set_layout(nua_t * p, vertex_t * v)
     free(bindings);
 }
 
-void vertex_create_descriptor_sets(nua_t * p, vertex_t * v)
+void nua_obj_create_descriptor_sets(nua_t * p, nua_obj_t * v)
 {
     if(p->verbose > 2)
     { printf("-> create_descriptor_sets\n"); }
@@ -963,7 +963,7 @@ void vertex_create_descriptor_sets(nua_t * p, vertex_t * v)
     return;
 }
 
-void vertex_create_texture_image(nua_t * p, vertex_t * v)
+void nua_obj_create_texture_image(nua_t * p, nua_obj_t * v)
 {
     if(p->verbose > 1)
     {
@@ -978,198 +978,198 @@ void vertex_create_texture_image(nua_t * p, vertex_t * v)
                                 &texChannels,
                                 STBI_rgb_alpha);
 #else
-                                texWidth = 128;
-                                texHeight = 128;
-                                texChannels = 4;
-                                uint8_t * pixels = calloc(texWidth*texHeight*texChannels,
-                                                          sizeof(uint8_t));
+    texWidth = 128;
+    texHeight = 128;
+    texChannels = 4;
+    uint8_t * pixels = calloc(texWidth*texHeight*texChannels,
+                              sizeof(uint8_t));
 #endif
-                                VkDeviceSize imageSize = texWidth * texHeight * 4;
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-                                if (!pixels) {
-                                    fprintf(stderr, "failed to load texture image!");
-                                    fprintf(stderr, "Could not read %s\n", imfile);
-                                    exit(EXIT_FAILURE);
-                                }
-
-                                VkBuffer stagingBuffer;
-                                VkDeviceMemory stagingBufferMemory;
-
-                                create_buffer(p->vkPDevice, p->vkDevice,
-                                              imageSize,
-                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                              &stagingBuffer,
-                                              &stagingBufferMemory);
-
-
-                                void* data;
-                                vkMapMemory(p->vkDevice,
-                                            stagingBufferMemory, 0, imageSize, 0, &data);
-                                memcpy(data, pixels, (size_t) imageSize);
-                                vkUnmapMemory(p->vkDevice, stagingBufferMemory);
-
-                                //stbi_image_free(pixels);
-                                free(pixels);
-
-                                create_image(p,
-                                             texWidth,
-                                             texHeight,
-                                             VK_FORMAT_R8G8B8A8_SRGB,
-                                             VK_SAMPLE_COUNT_1_BIT,
-                                             VK_IMAGE_TILING_OPTIMAL,
-                                             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                                             &v->textureImage,
-                                             &v->textureImageMemory);
-
-                                transition_image_layout(p, v->textureImage,
-                                                        VK_FORMAT_R8G8B8A8_SRGB, // To
-                                                        VK_IMAGE_LAYOUT_UNDEFINED, // From
-                                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-
-                                copy_buffer_to_image(p, stagingBuffer,
-                                                     v->textureImage,
-                                                     (uint32_t) texWidth, (uint32_t) texHeight);
-
-                                vkDestroyBuffer(p->vkDevice, stagingBuffer, NULL);
-                                vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
-
-                                transition_image_layout(p, v->textureImage,
-                                                        VK_FORMAT_R8G8B8A8_SRGB,
-                                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-                                return;
-                                }
-
-        void vertex_destroy_texture_image(nua_t * p, vertex_t * v)
-    {
-        vkDestroyImage(p->vkDevice, v->textureImage, NULL);
-        vkFreeMemory(p->vkDevice, v->textureImageMemory, NULL);
-        return;
+    if (!pixels) {
+        fprintf(stderr, "failed to load texture image!");
+        fprintf(stderr, "Could not read %s\n", imfile);
+        exit(EXIT_FAILURE);
     }
 
-    void vertex_create_texture_image_view(nua_t * p, vertex_t * v)
-    {
-        v->textureImageView = create_image_view(p,
-                                                v->textureImage,
-                                                VK_FORMAT_R8G8B8A8_SRGB,
-                                                VK_IMAGE_ASPECT_COLOR_BIT);
-    }
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
 
-    void vertex_destroy_texture_image_view(nua_t * p, vertex_t * v)
-    {
-        vkDestroyImageView(p->vkDevice, v->textureImageView, NULL);
-    }
+    create_buffer(p->vkPDevice, p->vkDevice,
+                  imageSize,
+                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                  &stagingBuffer,
+                  &stagingBufferMemory);
 
-    void vertex_destroy_texture_sampler(nua_t * p, vertex_t * v)
-    {
-        vkDestroySampler(p->vkDevice, v->textureSampler, NULL);
-    }
 
-    void vertex_create_texture_sampler(nua_t * p, vertex_t * v)
-    {
-        VkSamplerCreateInfo samplerInfo = {};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
-        /* Options:
-         * VK_SAMPLER_ADDRESS_MODE_REPEAT
-         * VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT
-         * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-         * VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
-         * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
-         */
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    void* data;
+    vkMapMemory(p->vkDevice,
+                stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, pixels, (size_t) imageSize);
+    vkUnmapMemory(p->vkDevice, stagingBufferMemory);
 
-        samplerInfo.anisotropyEnable = VK_TRUE;
+    //stbi_image_free(pixels);
+    free(pixels);
 
-        VkPhysicalDeviceProperties properties = {};
-        vkGetPhysicalDeviceProperties(p->vkPDevice, &properties);
-        //printf("maxSamplerAnisotropy = %f\n", properties.limits.maxSamplerAnisotropy);
-        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = 0.0f;
-        VkResult result = vkCreateSampler(p->vkDevice,
-                                          &samplerInfo,
-                                          NULL,
-                                          &v->textureSampler);
-        require_VK_SUCCESS(result);
-        return;
-    }
+    create_image(p,
+                 texWidth,
+                 texHeight,
+                 VK_FORMAT_R8G8B8A8_SRGB,
+                 VK_SAMPLE_COUNT_1_BIT,
+                 VK_IMAGE_TILING_OPTIMAL,
+                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                 &v->textureImage,
+                 &v->textureImageMemory);
 
-    void vertex_create_descriptor_pool(nua_t * p, vertex_t * v)
-    {
+    transition_image_layout(p, v->textureImage,
+                            VK_FORMAT_R8G8B8A8_SRGB, // To
+                            VK_IMAGE_LAYOUT_UNDEFINED, // From
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+
+    copy_buffer_to_image(p, stagingBuffer,
+                         v->textureImage,
+                         (uint32_t) texWidth, (uint32_t) texHeight);
+
+    vkDestroyBuffer(p->vkDevice, stagingBuffer, NULL);
+    vkFreeMemory(p->vkDevice, stagingBufferMemory, NULL);
+
+    transition_image_layout(p, v->textureImage,
+                            VK_FORMAT_R8G8B8A8_SRGB,
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    return;
+}
+
+void nua_obj_destroy_texture_image(nua_t * p, nua_obj_t * v)
+{
+    vkDestroyImage(p->vkDevice, v->textureImage, NULL);
+    vkFreeMemory(p->vkDevice, v->textureImageMemory, NULL);
+    return;
+}
+
+void nua_obj_create_texture_image_view(nua_t * p, nua_obj_t * v)
+{
+    v->textureImageView = create_image_view(p,
+                                            v->textureImage,
+                                            VK_FORMAT_R8G8B8A8_SRGB,
+                                            VK_IMAGE_ASPECT_COLOR_BIT);
+}
+
+void nua_obj_destroy_texture_image_view(nua_t * p, nua_obj_t * v)
+{
+    vkDestroyImageView(p->vkDevice, v->textureImageView, NULL);
+}
+
+void nua_obj_destroy_texture_sampler(nua_t * p, nua_obj_t * v)
+{
+    vkDestroySampler(p->vkDevice, v->textureSampler, NULL);
+}
+
+void nua_obj_create_texture_sampler(nua_t * p, nua_obj_t * v)
+{
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    /* Options:
+     * VK_SAMPLER_ADDRESS_MODE_REPEAT
+     * VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT
+     * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+     * VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
+     * VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
+     */
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+    samplerInfo.anisotropyEnable = VK_TRUE;
+
+    VkPhysicalDeviceProperties properties = {};
+    vkGetPhysicalDeviceProperties(p->vkPDevice, &properties);
+    //printf("maxSamplerAnisotropy = %f\n", properties.limits.maxSamplerAnisotropy);
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+    VkResult result = vkCreateSampler(p->vkDevice,
+                                      &samplerInfo,
+                                      NULL,
+                                      &v->textureSampler);
+    require_VK_SUCCESS(result);
+    return;
+}
+
+void nua_obj_create_descriptor_pool(nua_t * p, nua_obj_t * v)
+{
 #if sampler_test
-        VkDescriptorPoolSize * poolSize = calloc(3,
-                                                 sizeof(VkDescriptorPoolSize));
-        poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize[0].descriptorCount = (uint32_t) p->frames_in_flight;
-        poolSize[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize[1].descriptorCount = (uint32_t) p->frames_in_flight;
-        poolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSize[2].descriptorCount = (uint32_t) p->frames_in_flight;
+    VkDescriptorPoolSize * poolSize = calloc(3,
+                                             sizeof(VkDescriptorPoolSize));
+    poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize[0].descriptorCount = (uint32_t) p->frames_in_flight;
+    poolSize[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize[1].descriptorCount = (uint32_t) p->frames_in_flight;
+    poolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize[2].descriptorCount = (uint32_t) p->frames_in_flight;
 
-        VkDescriptorPoolCreateInfo poolInfo = {};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = 3;
-        poolInfo.pPoolSizes = poolSize;
-        poolInfo.maxSets = (uint32_t) p->frames_in_flight;
+    VkDescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 3;
+    poolInfo.pPoolSizes = poolSize;
+    poolInfo.maxSets = (uint32_t) p->frames_in_flight;
 
-        VkResult result = vkCreateDescriptorPool(p->vkDevice,
-                                                 &poolInfo,
-                                                 NULL,
-                                                 &v->descriptorPool);
-        require_VK_SUCCESS(result);
-        free(poolSize);
+    VkResult result = vkCreateDescriptorPool(p->vkDevice,
+                                             &poolInfo,
+                                             NULL,
+                                             &v->descriptorPool);
+    require_VK_SUCCESS(result);
+    free(poolSize);
 #else
-        VkDescriptorPoolSize poolSize = {};
-        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize.descriptorCount = p->frames_in_flight*2;
+    VkDescriptorPoolSize poolSize = {};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = p->frames_in_flight*2;
 
-        VkDescriptorPoolCreateInfo poolInfo = {};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &poolSize;
-        poolInfo.maxSets = p->frames_in_flight;
-        VkResult result = vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool);
-        require_VK_SUCCESS(result);
+    VkDescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = p->frames_in_flight;
+    VkResult result = vkCreateDescriptorPool(p->vkDevice, &poolInfo, NULL, &v->descriptorPool);
+    require_VK_SUCCESS(result);
 #endif
-        return;
-    }
+    return;
+}
 
-    void vertex_destroy_descriptor_pool(nua_t * p, vertex_t * v)
-    {
-        vkDestroyDescriptorPool(p->vkDevice, v->descriptorPool, NULL);
-        return;
-    }
+void nua_obj_destroy_descriptor_pool(nua_t * p, nua_obj_t * v)
+{
+    vkDestroyDescriptorPool(p->vkDevice, v->descriptorPool, NULL);
+    return;
+}
 
-    void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v)
+void nua_obj_destroy_graphics_pipeline(nua_t * p, nua_obj_t * v)
+{
+    if(p->verbose > 2)
     {
-        if(p->verbose > 2)
-        {
-            printf("void vertex_destroy_graphics_pipeline(nua_t * p, vertex_t * v)\n");
-        }
-        vkDestroyShaderModule(p->vkDevice, v->fragShader, NULL);
-        vkDestroyShaderModule(p->vkDevice, v->vertShader, NULL);
-        vkDestroyPipeline(p->vkDevice, v->graphicsPipeline, NULL);
-        vkDestroyPipelineLayout(p->vkDevice, v->pipelineLayout, NULL);
-        return;
+        printf("void vertex_destroy_graphics_pipeline(nua_t * p, nua_obj_t * v)\n");
     }
+    vkDestroyShaderModule(p->vkDevice, v->fragShader, NULL);
+    vkDestroyShaderModule(p->vkDevice, v->vertShader, NULL);
+    vkDestroyPipeline(p->vkDevice, v->graphicsPipeline, NULL);
+    vkDestroyPipelineLayout(p->vkDevice, v->pipelineLayout, NULL);
+    return;
+}
 
-    void vertex_destroy_descriptor_sets(nua_t * p, vertex_t * v)
-    {
-        vkDestroyDescriptorSetLayout(p->vkDevice, v->descriptorSetLayout, NULL);
-        free(v->descriptorSets);
-        return;
-    }
+void nua_obj_destroy_descriptor_sets(nua_t * p, nua_obj_t * v)
+{
+    vkDestroyDescriptorSetLayout(p->vkDevice, v->descriptorSetLayout, NULL);
+    free(v->descriptorSets);
+    return;
+}
