@@ -6,46 +6,29 @@ void print_VkResult(VkResult r)
     // data from https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkResult.html
     switch(r)
     {
-#ifdef VK_ERROR_COMPRESSION_EXHAUSTED_EXT
     case VK_ERROR_COMPRESSION_EXHAUSTED_EXT:
         printf("VK_ERROR_COMPRESSION_EXHAUSTED_EXT\n");
         break;
-#endif
-#ifdef VK_ERROR_DEVICE_LOST
     case VK_ERROR_DEVICE_LOST:
         printf("VK_ERROR_DEVICE_LOST\n");
         break;
-#endif
-#ifdef VK_ERROR_EXTENSION_NOT_PRESENT
+
     case VK_ERROR_EXTENSION_NOT_PRESENT:
         printf("VK_ERROR_EXTENSION_NOT_PRESENT\n");
         break;
-#endif
-#ifdef VK_ERROR_FEATURE_NOT_PRESENT
     case VK_ERROR_FEATURE_NOT_PRESENT:
         printf("VK_ERROR_FEATURE_NOT_PRESENT\n");
         break;
-#endif
-#ifdef VK_ERROR_FORMAT_NOT_SUPPORTED
     case VK_ERROR_FORMAT_NOT_SUPPORTED:
         printf("VK_ERROR_FORMAT_NOT_SUPPORTED\n");
         break;
-#endif
-#ifdef VK_ERROR_FRAGMENTATION
     case VK_ERROR_FRAGMENTATION:
         printf("VK_ERROR_FRAGMENTATION\n");
         break;
-#endif
-#ifdef VK_ERROR_FRAGMENTATION_EXT
-    case VK_ERROR_FRAGMENTATION_EXT:
-        printf("VK_ERROR_FRAGMENTATION_EXT\n");
-        break;
-#endif
-#ifdef VK_ERROR_FRAGMENTED_POOL
     case VK_ERROR_FRAGMENTED_POOL:
         printf("VK_ERROR_FRAGMENTED_POOL\n");
         break;
-#endif
+
 #ifdef VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
     case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
         printf("VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT\n");
@@ -116,36 +99,26 @@ void print_VkResult(VkResult r)
         printf("VK_ERROR_MEMORY_MAP_FAILED\n");
         break;
 #endif
-#ifdef VK_ERROR_NATIVE_WINDOW_IN_USE_KHR
+
     case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
         printf("VK_ERROR_NATIVE_WINDOW_IN_USE_KHR\n");
         break;
-#endif
-#ifdef VK_ERROR_NOT_PERMITTED_EXT
-    case VK_ERROR_NOT_PERMITTED_EXT:
-        printf("VK_ERROR_NOT_PERMITTED_EXT\n");
-        break;
-#endif
-#ifdef VK_ERROR_NOT_PERMITTED_KHR
-    case VK_ERROR_NOT_PERMITTED_KHR:
-        printf("VK_ERROR_NOT_PERMITTED_KHR\n");
-        break;
-#endif
-#ifdef VK_ERROR_OUT_OF_DATE_KHR
+
+
+
     case VK_ERROR_OUT_OF_DATE_KHR:
         printf("VK_ERROR_OUT_OF_DATE_KHR\n");
         break;
-#endif
-#ifdef VK_ERROR_OUT_OF_DEVICE_MEMORY
+
+
     case VK_ERROR_OUT_OF_DEVICE_MEMORY:
         printf("VK_ERROR_OUT_OF_DEVICE_MEMORY\n");
         break;
-#endif
-#ifdef VK_ERROR_OUT_OF_HOST_MEMORY
+
     case VK_ERROR_OUT_OF_HOST_MEMORY:
         printf("VK_ERROR_OUT_OF_HOST_MEMORY\n");
         break;
-#endif
+
 #ifdef VK_ERROR_OUT_OF_POOL_MEMORY
     case VK_ERROR_OUT_OF_POOL_MEMORY:
         printf("VK_ERROR_OUT_OF_POOL_MEMORY\n");
@@ -437,6 +410,14 @@ VkShaderModule load_shader(VkDevice dev, const char * file, int verbose)
     long fsize = ftell(fid);
     fseek(fid, 0, SEEK_SET);
 
+    if(fsize == 0)
+    {
+        fprintf(stderr, "! Error\nFailed to use the shader file %s. "
+                "The file looks empty\n",
+                file);
+        exit(EXIT_FAILURE);
+    }
+
     size_t buff_size = fsize +1;
     uint32_t * buffer = calloc(buff_size, 1);
     assert(fsize % 4 == 0);
@@ -463,7 +444,8 @@ VkShaderModule shader_from_buffer(VkDevice dev,
  {
      if(verbose > 2)
      {
-         printf("shader_from_buffer\n");
+         printf("shader_from_buffer, buffer_size=%zu\n", buffer_size);
+         fflush(stdout);
      }
 
     VkShaderModuleCreateInfo createInfo = {};

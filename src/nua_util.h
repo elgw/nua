@@ -1,6 +1,7 @@
 #ifndef __nua_util_h__
 #define __nua_util_h__
 
+
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
@@ -11,8 +12,12 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "nua_version.h"
+
 #define nua_fixme printf("FIX me! File: %s Function: %s Line: %d\n", \
                          __FILE__, __FUNCTION__, __LINE__);
+
+void nua_print_version(FILE * fid);
 
 size_t get_peakMemoryKB(void);
 float timespec_diff(struct timespec* end, struct timespec * start);
@@ -30,6 +35,9 @@ float midrand(void);
 
 /* Uniform random in [0, 1] */
 float urand(void);
+
+/* */
+int nua_isfile(char * file_name);
 
 /* 3-Vector L2 norm */
 float f3_norm(float * p);

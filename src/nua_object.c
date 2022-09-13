@@ -347,8 +347,64 @@ void vertex_create_graphics_pipeline(nua_t * p, vertex_t * v)
         printf("-> Read shaders and create modules\n");
     }
 
-    v->vertShader = load_shader(p->vkDevice, v->vert_shader_file, p->verbose);
-    v->fragShader = load_shader(p->vkDevice, v->frag_shader_file, p->verbose);
+    if(nua_isfile(v->vert_shader_file))
+    {
+        v->vertShader = load_shader(p->vkDevice,
+                                    v->vert_shader_file,
+                                    p->verbose);
+    } else {
+        if(v->vtype == VERTEX_BALL)
+        {
+            v->vertShader = shader_from_buffer(p->vkDevice,
+                                               (uint32_t*) __shaders_shader_ball_vert_spv,
+                                               __shaders_shader_ball_vert_spv_len/4,
+                                               p->verbose);
+        }
+        if(v->vtype == VERTEX_CONNECT)
+        {
+            v->vertShader = shader_from_buffer(p->vkDevice,
+                                               (uint32_t*) __shaders_shader_connect_vert_spv,
+                                               __shaders_shader_connect_vert_spv_len/4,
+                                               p->verbose);
+        }
+        if(v->vtype == VERTEX_DOMAIN)
+        {
+            v->vertShader = shader_from_buffer(p->vkDevice,
+                                               (uint32_t*) __shaders_shader_domain_vert_spv,
+                                               __shaders_shader_domain_vert_spv_len/4,
+                                               p->verbose);
+        }
+    }
+
+    if(nua_isfile(v->frag_shader_file))
+    {
+        v->fragShader = load_shader(p->vkDevice,
+                                    v->frag_shader_file,
+                                    p->verbose);
+    } else {
+        if(v->vtype == VERTEX_BALL)
+        {
+            v->fragShader = shader_from_buffer(p->vkDevice,
+                                               (uint32_t*) __shaders_shader_ball_frag_spv,
+                                               __shaders_shader_ball_frag_spv_len/4,
+                                               p->verbose);
+        }
+        if(v->vtype == VERTEX_CONNECT)
+        {
+            v->fragShader = shader_from_buffer(p->vkDevice,
+                                               (uint32_t*) __shaders_shader_connect_frag_spv,
+                                               __shaders_shader_connect_frag_spv_len/4,
+                                               p->verbose);
+        }
+        if(v->vtype == VERTEX_DOMAIN)
+        {
+            v->fragShader = shader_from_buffer(p->vkDevice,
+                                               (uint32_t*) __shaders_shader_domain_frag_spv,
+                                               __shaders_shader_domain_frag_spv_len/4,
+                                               p->verbose);
+        }
+    }
+
 
     // Create shader stage
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};

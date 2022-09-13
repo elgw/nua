@@ -22,7 +22,7 @@
 #include "nua_object.h"
 #include "nua_util.h"
 #include "nua_vkutil.h"
-
+#include "nua_version.h"
 
 struct vertex;
 typedef struct vertex vertex_t;

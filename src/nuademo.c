@@ -254,6 +254,7 @@ void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
         { "nvert", required_argument, NULL, 'v'},
         { "oneframe", no_argument, NULL, '1'},
         { "verbose", required_argument, NULL, 'V'},
+        { "version", no_argument, NULL, 'w'},
         { "msaa", required_argument, NULL, 'm'},
         { "qsphere", required_argument, NULL, 's'},
         { "qlink", required_argument, NULL, 'L'},
@@ -265,7 +266,7 @@ void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
     };
     int ch;
 
-    while((ch = getopt_long(argc, argv, "1bcCBfhlLmnpsvV", longopts, NULL)) != -1)
+    while((ch = getopt_long(argc, argv, "1bcCBfhlLmnpsvVw", longopts, NULL)) != -1)
     {
         switch(ch)
         {
@@ -306,6 +307,11 @@ void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
         case 'v':
             //free(p->vert_shader_file);
             //p->vert_shader_file = strdup(optarg);
+            break;
+        case 'w':
+            printf("nuademo using ");
+            nua_print_version(stdout);
+            exit(EXIT_SUCCESS);
             break;
         case 'm':
             p->msaa_want = atoi(optarg);

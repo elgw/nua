@@ -190,3 +190,23 @@ float f3_dist_f3(float * a, float * b)
                 + pow(a[1]-b[1], 2)
                 + pow(a[2]-b[2], 2) );
 }
+
+int nua_isfile(char * file_name)
+{
+    int isfile = 0;
+    FILE * fid = fopen(file_name, "r");
+    if(fid != NULL)
+    {
+        isfile = 1;
+        fclose(fid);
+    }
+    return isfile;
+}
+
+void nua_print_version(FILE * fid)
+{
+    fprintf(fid, "nua v. %s.%s.%s\n",
+            NUA_VERSION_MAJOR,
+            NUA_VERSION_MINOR,
+            NUA_VERSION_PATCH);
+}
