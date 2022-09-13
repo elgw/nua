@@ -205,7 +205,7 @@ int nua_isfile(char * file_name)
 
 void nua_print_version(FILE * fid)
 {
-    fprintf(fid, "nua v. %s.%s.%s\n",
+    fprintf(fid, "nua version %s.%s.%s\n",
             NUA_VERSION_MAJOR,
             NUA_VERSION_MINOR,
             NUA_VERSION_PATCH);

@@ -14,7 +14,7 @@ void nua_run(nua_t * p)
     if(p->msaaSamples == VK_SAMPLE_COUNT_1_BIT)
     {
         nua_fixme;
-        printf("Warning: need to have at least 2-but MSAA\n");
+        printf("Warning: need to have at least 2-bit MSAA\n");
         p->msaaSamples = VK_SAMPLE_COUNT_2_BIT;
     }
 
@@ -83,7 +83,7 @@ nua_t * nua_new()
     p->show_links = 1;
 
     /* Vulkan settings */
-    p->msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+    p->msaaSamples = VK_SAMPLE_COUNT_2_BIT;
     p->vkEnableValidationLayers = 1;
     p->window = NULL;
     p->vkPDevice = VK_NULL_HANDLE;
@@ -374,8 +374,8 @@ void setup_VK_instance(nua_t * p)
 
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pApplicationName = "nua";
+    appInfo.applicationVersion = VK_MAKE_VERSION(NUA_VERSION_MAJOR, NUA_VERSION_MINOR, NUA_VERSION_PATCH);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
@@ -1305,7 +1305,6 @@ void handle_SDL_event(nua_t * p,  SDL_Event e)
     if(e.type == SDL_MOUSEBUTTONDOWN)
     {
         int x = 0; int y = 0;
-
         SDL_GetMouseState(&x, &y);
         //printf("x: %d, y: %d\n", x, y);
         p->mousex = x;
@@ -1321,7 +1320,7 @@ void handle_SDL_event(nua_t * p,  SDL_Event e)
             p->roty0 = p->roty;
         }
 
-        if(e.button.button != SDL_BUTTON(SDL_BUTTON_RIGHT))
+        if(e.button.button != SDL_BUTTON(SDL_BUTTON_LEFT))
         {
             SDL_Cursor *cur = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
             SDL_SetCursor(cur);
@@ -1330,14 +1329,11 @@ void handle_SDL_event(nua_t * p,  SDL_Event e)
 
     if(e.type == SDL_MOUSEBUTTONUP)
     {
-        // Drag ended
+        /* Drag ended */
+        /* I get some spurious events when dragging ...  */
+        /* Reset the mouse icon */
         SDL_Cursor *cur = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
         SDL_SetCursor(cur);
-
-        if(e.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
-        {
-
-        }
     }
 
     if (e.type == SDL_MOUSEMOTION)
@@ -1438,7 +1434,6 @@ void handle_user_interaction(nua_t * p)
 {
     SDL_Event e;
 
-
     /* A computational thread should
      * make a call to SDL_PushEvent when there is something to update. */
 
@@ -1446,7 +1441,7 @@ void handle_user_interaction(nua_t * p)
         SDL_WaitEvent( &e );
         handle_SDL_event(p, e);
     }
-    while( SDL_PollEvent( &e ) != 0 )
+    while( SDL_PollEvent( &e ) )
     {
         handle_SDL_event(p, e);
     }

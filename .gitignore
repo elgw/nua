@@ -5,3 +5,5 @@ nuademo
 libnua.so
 *.cmm
 *_ut
+*.spv.h
+*.deb

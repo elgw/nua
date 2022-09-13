@@ -105,10 +105,20 @@ sudo make install
 
 To build and run the demo:
 
-``` C
+``` shell
 make
 LD_LIBRARY_PATH=LD_LIBRARY_PATH:`pwd`
 ./nuademo --help
+```
+
+To build and install
+
+``` shell
+make
+./makedeb
+sudo apt-get install ./libnua_0.0.2_amd64.deb
+# To un-install, use
+# sudo apt-get remove libnua
 ```
 
 If you plan to play with the code It might make sense to install the SDK from

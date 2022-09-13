@@ -653,5 +653,5 @@ int main(int argc, char ** argv)
     pthread_join(nuad->timeout_thread, NULL);
 
     printf("Peak memory: %zu kb\n", get_peakMemoryKB());
-    return 0;
+    return EXIT_SUCCESS;
 }
