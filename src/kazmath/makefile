@@ -12,5 +12,5 @@ lib_nuakazmath.a: $(OBJECTS)
 	$(CC) -fPIC -c $(CFLAGS) ./$< $(LDFLAGS)
 
 clean:
-	rm *.o
-	rm *.a
+	rm -f *.o
+	rm -f *.a
