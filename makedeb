@@ -35,6 +35,8 @@ cp $savedir/libnua.so $pkgdir/usr/local/lib/
 # headers
 mkdir -p $pkgdir/usr/local/include/libnua
 cp $savedir/src/*.h $pkgdir/usr/local/include/libnua
+mkdir -p $pkgdir/usr/local/include/libnua/kazmath/
+cp $savedir/src/kazmath/*.h $pkgdir/usr/local/include/libnua/kazmath/
 
 # man pages
 # mkdir -p $pkgdir/usr/share/man/man1/

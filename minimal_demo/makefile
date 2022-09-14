@@ -3,7 +3,6 @@ CC=gcc -Wall -Wextra
 CFLAGS+=`sdl2-config --cflags`
 CFLAGS+=`pkg-config vulkan --cflags`
 CFLAGS+=`xml2-config --cflags`
-CFLAGS+=-I../src
 
 LDFLAGS+=-lnua
 

@@ -109,7 +109,7 @@ LD_LIBRARY_PATH=LD_LIBRARY_PATH:`pwd`
 ``` shell
 make
 ./makedeb
-sudo apt-get install ./libnua_0.0.2_amd64.deb
+sudo apt-get install ./libnua_*.deb
 # To un-install, use
 # sudo apt-get remove libnua
 ```
