@@ -27,8 +27,8 @@ void main() {
     outColor = vec4(ambient + diffuse + specular, 1.0);
     //    vec4 texColor = texture(texSampler, (texCoord+1.0)/2.0);
     //    outColor = outColor + texColor;
-    if(position.x > 0)
+    if(position.x > 0.0)
     {
-        discard;
+      discard;
     }
 }

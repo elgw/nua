@@ -29,14 +29,15 @@ LDFLAGS+=-pthread
 
 # Kazmath
 # https://github.com/Kazade/kazmath
-LDFLAGS+=-lkazmath
+# LDFLAGS+=-lkazmath
+LDFLAGS+=-L./src/kazmath -l_nuakazmath
 
 # standard math library
 LDFLAGS+=-lm
 
 LDF=-Wl,--start-group $(LDFLAGS) -Wl,--end-group
 
-nuademo: src/nuademo.c src/nuademo.h libnua.so
+nuademo: src/nuademo.c src/nuademo.h libnua.so src/kazmath/lib_nuakazmath.a
 	$(CC) $(CFLAGS) src/nuademo.c -lnua -L./ $(LDF) -o nuademo
 
 VSFILES=src/vshape_ut.c src/vshape.c
@@ -86,6 +87,9 @@ nua_util.o: src/nua_util.c src/nua_util.h
 
 shaders: shaders/shader_ball_frag.spv shaders/shader_ball_vert.spv shaders/shader_connect_frag.spv shaders/shader_connect_vert.spv shaders/shader_domain_frag.spv shaders/shader_domain_vert.spv
 
+src/kazmath/libkazmath.a:
+	make -C src/kazmath/ libkazmath.a
+
 clean:
 	rm -f nuademo
 	rm -f vshape_ut
@@ -95,3 +99,4 @@ clean:
 	rm -f src/*.gch
 	rm -f cmm_io_ut
 	rm -f libnua.so
+	make -C src/kazmath/ clean

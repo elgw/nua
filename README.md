@@ -37,7 +37,7 @@ Some overall goals for this project are:
  - Support both Mac and Linux (yet to be adapted for mac).
  - Eventually, provide a stable API and some documentation (TODO).
  - Only rely on packages from the Ubuntu Package archive (i.e. that
-   can be installed with **apt**, kazmath does not fulfill that at the moment).
+   can be installed with **apt**, kazmath does not fulfill that at the moment and is hence compiled into the library).
 
 The implementation uses
 [SDL2](https://www.libsdl.org/) which in turn uses
@@ -94,20 +94,6 @@ sudo apt-get install libsdl2-dev libsdl2-image-dev
 sudo apt-get install vulkan-validationlayers
 # for shader compilation with glslangValidator
 sudo apt install glslang-tools
-```
-
-kazmath isn't in the Ubuntu Package archive (yet) and has to be
-installed manually. This worked for me:
-
-``` shell
-sudo apt install python2
-git clone https://github.com/Kazade/kazmath
-cd kazmath
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
 ```
 
 ### Build and run the demo
@@ -173,5 +159,5 @@ layers (which you would have to enable manually).
 Libraries:
  - [SDL2](https://www.libsdl.org/)
  - [Vulkan](https://www.vulkan.org/)
- - [Kazmath](https://github.com/Kazade/kazmath)
+ - [Kazmath](https://github.com/Kazade/kazmath) partly included among the source files in this repo.
  - [libxml2](https://gitlab.gnome.org/GNOME/libxml2)
