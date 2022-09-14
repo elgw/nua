@@ -19,14 +19,15 @@
 #include <SDL_vulkan.h>
 #include <SDL_image.h>
 #include <vulkan/vulkan.h>
-#include <kazmath/kazmath.h>
 
+#include "kazmath/kazmath.h"
 #include "vshape.h"
 #include "cmm_io.h"
 #include "nua_object.h"
 #include "nua_util.h"
 #include "nua_vkutil.h"
 #include "nua_version.h"
+
 
 struct nua_obj;
 typedef struct nua_obj nua_obj_t;
