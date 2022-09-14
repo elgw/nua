@@ -5,7 +5,7 @@ LDFLAGS=
 ifdef DEBUG
 CFLAGS+=-g3
 else
-CFLAGS+=-O3 -march=native -DNDEBUG
+CFLAGS+=-O3 -march=native -mtune=native -DNDEBUG
 LDFLAGS+=-flto
 endif
 
