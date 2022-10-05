@@ -9,11 +9,13 @@ demo_data_t * demo_data_from_cmm(char * file)
         exit(EXIT_FAILURE);
     }
 
-    demo_data_t * D = malloc(sizeof(demo_data_t));
+    demo_data_t * D = calloc(1, sizeof(demo_data_t));
     D->n_beads = cmm->n_markers;
-    D->n_links = cmm->n_links;
     D->beads = malloc(sizeof(bead_data_t)*D->n_beads);
+    D->n_links = cmm->n_links;
     D->links = malloc(sizeof(link_data_t)*D->n_links);
+    D->link_ids = malloc(2*sizeof(uint32_t)*D->n_links);
+    size_t offset = cmm->markers[0].id;
 
     for(uint32_t mm = 0; mm < (uint32_t) D->n_beads; mm++)
     {
@@ -29,11 +31,13 @@ demo_data_t * demo_data_from_cmm(char * file)
 
     for(uint32_t ll = 0; ll < (uint32_t) D->n_links; ll++)
     {
+        //printf("ll=%u\n", ll);
         link_data_t * L = &D->links[ll];
-        uint32_t id1 = cmm->links[ll].id1;
-        uint32_t id2 = cmm->links[ll].id2;
-        id1--;
-        id2--;
+        uint32_t id1 = cmm->links[ll].id1 - offset;
+        uint32_t id2 = cmm->links[ll].id2 - offset;
+        assert(id1 < D->n_beads);
+        assert(id2 < D->n_beads);
+        //printf("id1=%u, id2=%u\n", id1, id2); fflush(stdout);
         L->x1 = cmm->markers[id1].x;
         L->y1 = cmm->markers[id1].y;
         L->z1 = cmm->markers[id1].z;
@@ -41,9 +45,14 @@ demo_data_t * demo_data_from_cmm(char * file)
         L->y2 = cmm->markers[id2].y;
         L->z2 = cmm->markers[id2].z;
         L->radius = cmm->links[ll].radius;
+        D->link_ids[2*ll] = id1;
+        D->link_ids[2*ll+1] = id2;
     }
 
     cmm_free(cmm);
+
+    demo_data_update_link_data(D);
+
     return D;
 }
 
@@ -82,7 +91,7 @@ demo_data_t * demo_data_new(int n_beads, int n_links)
             exit(EXIT_FAILURE);
         }
     }
-    demo_data_t * D = malloc(sizeof(demo_data_t));
+    demo_data_t * D = calloc(1, sizeof(demo_data_t));
     D->n_beads = n_beads;
     D->n_links = n_links;
     D->link_ids = malloc(2*n_links*sizeof(uint32_t));
@@ -157,6 +166,7 @@ demo_data_t * demo_data_new(int n_beads, int n_links)
 
 void demo_data_free(demo_data_t * D)
 {
+    assert(D != NULL);
     free(D->beads);
     free(D->links);
     free(D->link_ids);
@@ -229,6 +239,7 @@ void nuademo_help(nuademo_t * p)
 {
     printf("--help\n\t show this help and quit\n");
     printf("--cmmdump\n\t write bead coordinates to cmmdump.cmm\n");
+    printf("--cmm file\n\t read a chimera marker file (.cmm)\n");
     printf("--nbeads b\n\t set the number of beads\n");
     printf("--nlinks l\n\t set the number of links\n");
     printf("--beadsize\n\t set the number of basepairs per bead\n");
@@ -647,10 +658,11 @@ int main(int argc, char ** argv)
 
     /* Stop your calculations */
     nuademo_stop_calc(nuad);
-    nuademo_free(nuad);
 
     /* Wait for this thread if it is running */
     pthread_join(nuad->timeout_thread, NULL);
+
+    nuademo_free(nuad);
 
     printf("Peak memory: %zu kb\n", get_peakMemoryKB());
     return EXIT_SUCCESS;

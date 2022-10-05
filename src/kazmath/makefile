@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -std=gnu11 -O3 -march=native -mtune=native
-LDFLAGS=-lm -flto
+CFLAGS=-W -std=gnu11 -O3 -march=native -mtune=native
+LDFLAGS=-lm
 
 SRCS=$(wildcard *.c)
 OBJECTS=$(SRCS:.c=.o)
