@@ -37,8 +37,9 @@ LDFLAGS+=-lm
 
 LDF=-Wl,--start-group $(LDFLAGS) -Wl,--end-group
 
-nuademo: src/nuademo.c src/nuademo.h libnua.so
-	$(CC) $(CFLAGS) src/nuademo.c -lnua -L./ $(LDF) -o nuademo
+ndfiles=src/nuademo.c src/ovolhash.c
+nuademo: $(ndfiles) libnua.so
+	$(CC) $(CFLAGS) $(ndfiles) -lnua -L./ $(LDF) -o nuademo
 
 VSFILES=src/vshape_ut.c src/vshape.c
 vshape_ut: $(VSFILES)

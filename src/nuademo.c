@@ -261,6 +261,50 @@ void nuademo_help(nuademo_t * p)
     exit(EXIT_SUCCESS);
 }
 
+void set_yellow_blue(demo_data_t * D, float blue)
+{
+    // Set the proportion blue beads to color blue
+    assert(blue <= 1);
+    assert(blue >= 0);
+    for(size_t kk = 0; kk < (size_t) D->n_beads; kk++)
+    {
+        D->beads[kk].R = 1;
+        D->beads[kk].G = 1;
+        D->beads[kk].B = 0;
+    }
+
+    #if 0
+    // Random initialization
+    size_t nset = 0;
+    while( (double) nset / (double) D->n_beads < blue)
+    {
+        size_t idx = rand() % D->n_beads;
+        if(D->beads[idx].B == 0)
+        {
+            D->beads[idx].R=0;
+            D->beads[idx].G=1;
+            D->beads[idx].B=1;
+            nset++;
+        }
+    }
+    #endif
+
+    int start = (0.5 -0.5*blue)*D->n_beads;
+    for(int kk = start; kk < start + blue*D->n_beads; kk++)
+    {
+        D->beads[kk].R=0;
+        D->beads[kk].G=1;
+        D->beads[kk].B=1;
+    }
+
+    for(size_t kk = 0; kk + 1< (size_t) D->n_beads; kk++)
+    {
+        D->link_ids[2*kk] = kk;
+        D->link_ids[2*kk+1] = kk+1;
+    }
+    demo_data_update_link_data(D);
+    return;
+}
 
 void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
 {
@@ -268,6 +312,7 @@ void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
         { "nbeads", required_argument, NULL, 'b'},
         { "cmm", required_argument, NULL, 'C'},
         { "cmmdump", no_argument, NULL, 'c'},
+        { "blue",  required_argument, NULL, '0'},
         { "beadsize", required_argument, NULL, 'B'},
         { "frag", required_argument, NULL, 'f'},
         { "nlinks", required_argument, NULL, 'l'},
@@ -286,12 +331,16 @@ void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
     };
     int ch;
 
-    while((ch = getopt_long(argc, argv, "1bcCBfhlLmnpsvVw", longopts, NULL)) != -1)
+    while((ch = getopt_long(argc, argv, "0:1b:cCb:BfhlLmnpsvVw", longopts, NULL)) != -1)
     {
         switch(ch)
         {
         case '1':
             p->oneframe = 1;
+            break;
+        case '0':
+            p->blue = atof(optarg);
+            p->yellow_blue = 1;
             break;
         case 'B':
             p->n_beads = 3400000000.0 / (double) atol(optarg);
@@ -354,7 +403,18 @@ void nuademo_argparse(nuademo_t * p, int argc, char ** argv)
         printf("Using %d beads (%.1f kb per bead on haploid HG)\n",
                p->n_beads,
                (double) 3400000000 / (double) p->n_beads / 1000);
-        p->D = demo_data_new(p->n_beads, p->n_links);
+
+        if(p->yellow_blue)
+        {
+            p->n_links = p->n_beads-1;
+            p->D = demo_data_new(p->n_beads, p->n_links);
+            set_yellow_blue(p->D, p->blue);
+
+
+        } else {
+            p->D = demo_data_new(p->n_beads, p->n_links);
+        }
+
     } else {
         p->D = demo_data_from_cmm(p->cmmfile);
         p->n_beads = p->D->n_beads;
@@ -520,9 +580,9 @@ void nua_demo_ui(SDL_Event e, void *data)
         if(keyDown == SDL_SCANCODE_C)
         {
             pthread_create(&nuad->timeout_thread,
-                                   NULL,
-                                   close_nua_from_thread,
-                                   nuad);
+                           NULL,
+                           close_nua_from_thread,
+                           nuad);
         }
     }
     return;
@@ -547,6 +607,162 @@ void nuad_wiggle_markers(nuademo_t * nuad)
     return;
 }
 
+static float norm3(float * X)
+{
+    return sqrt(pow(X[0], 2)
+                + pow(X[1], 2)
+                + pow(X[2], 2));
+}
+
+static float
+eudist3(float *A, float *B)
+{
+    return sqrt(
+                pow(A[0]-B[0],2)
+                + pow(A[1]-B[1],2)
+                + pow(A[2]-B[2],2));
+}
+
+
+void steric_hindrance(float * X, float * g, size_t N, float r0)
+{
+    float kVol = 1;
+    ovol_t * ovol = ovol_new(N, r0);
+
+    for(size_t kk = 0; kk< N; kk++)
+    {
+        ovol_insert(ovol, 1, X[3*kk], X[3*kk+1], X[3*kk+2]);
+    }
+
+    for(size_t kk = 0; kk<N; kk++)
+    {
+        size_t nnb = 0;
+        if(norm3(X+3*kk) > 1)
+            continue;
+
+        ovol_item_t * nb
+            = ovol_get_neighbours(ovol,
+                                  X[3*kk], X[3*kk+1], X[3*kk+2],
+                                  &nnb);
+        float did = 1.0;
+        for(size_t nn = 0; nn < nnb; nn++)
+        {
+            if(norm3(&nb[nn].x) > 1)
+                continue;
+
+            float dx = nb[nn].x - X[3*kk];
+            g[3*kk] += kVol*2*(dx)*did;
+            float dy = nb[nn].y - X[3*kk+1];
+            g[3*kk+1] += kVol*2*(dy)*did;
+            float dz = nb[nn].z - X[3*kk+2];
+            g[3*kk+2] += kVol*2*(dz)*did;
+        }
+    }
+    ovol_free(ovol);
+    return;
+}
+
+// r0: bead radius
+// r1: capture distance
+void attraction(float * X, uint8_t * u, float * g, size_t N, float r0, float r1, float F)
+{
+
+    ovol_t * ovol = ovol_new(N, r1);
+
+    for(size_t kk = 0; kk< N; kk++)
+    {
+        if(u[kk])
+            ovol_insert(ovol, 1, X[3*kk], X[3*kk+1], X[3*kk+2]);
+    }
+
+    for(size_t kk = 0; kk<N; kk++)
+    {
+        if(!u[kk])
+            continue;
+
+        if(norm3(X+3*kk) > 1)
+            continue;
+
+        size_t nnb = 0;
+        ovol_item_t * nb
+            = ovol_get_neighbours(ovol,
+                                  X[3*kk], X[3*kk+1], X[3*kk+2],
+                                  &nnb);
+
+        for(size_t nn = 0; nn < nnb; nn++)
+        {
+            if(norm3(&nb[nn].x) > 1)
+               continue;
+
+            double di = eudist3(X+3*kk, &nb[nn].x);
+            if(di < 2*r0)
+                continue;
+
+            double did = (di - 0.5*(r1+r0))/di;
+
+            float dx = nb[nn].x - X[3*kk];
+            g[3*kk] -= F*2*(dx)*did;
+            float dy = nb[nn].y - X[3*kk+1];
+            g[3*kk+1] -= F*2*(dy)*did;
+            float dz = nb[nn].z - X[3*kk+2];
+            g[3*kk+2] -= F*2*(dz)*did;
+        }
+    }
+    ovol_free(ovol);
+    return;
+}
+
+static void brownian_force(float * g, size_t N, float Fb)
+{
+    for(size_t pp = 0; pp < 3*N; pp++)
+    {
+        g[pp] = Fb*
+            (
+             ( (double) rand() / (double) RAND_MAX ) - 0.5);
+    }
+}
+
+
+static void
+in_domain(float * g, float * X, size_t N, float r0, float fDom)
+{
+    // r0: bead radius
+
+    for(size_t kk = 0; kk< N; kk++)
+    {
+        double r = norm3(X+kk*3);
+        if(r > 1-r0)
+        {
+            double re = 2.0 / r * (r-(1-r0));
+            for(int idx = 0; idx<3; idx++)
+            {
+                g[3*kk+idx] += fDom*X[kk*3+idx]*re;
+            }
+        }
+    }
+}
+
+static void
+links(float * g, uint32_t *L, size_t NL, float * X, float d0, float F)
+{  for(size_t pp = 0; pp < NL; pp++)
+    {
+        size_t kk = L[pp*2];
+        size_t ll = L[pp*2+1];
+
+        double d = eudist3(X+3*kk, X+3*ll);
+
+        if(d > d0 && d > 1e-6 && fabs(d-d0) > 1e-5)
+        {
+            for(int idx = 0; idx<3; idx++)
+            {
+                g[3*kk+idx] += F*2*(X[3*kk+idx] - X[3*ll+idx])/d*(d - d0);
+                g[3*ll+idx] -= F*2*(X[3*kk+idx] - X[3*ll+idx])/d*(d - d0);
+            }
+        }
+    }
+}
+
+
 /*
  * - Start in a paused state
  * - Start working when signaled.
@@ -554,7 +770,7 @@ void nuad_wiggle_markers(nuademo_t * nuad)
  * - Quit when nuad->worker_quit = 1
  *   requires signaling to discover if paused.
  * see https://docs.oracle.com/cd/E19455-01/806-5257/6je9h032r/index.html
-*/
+ */
 void * nuademo_calc_thread(void * data)
 {
     nuademo_t * nuad = (nuademo_t*) data;
@@ -573,11 +789,92 @@ void * nuademo_calc_thread(void * data)
         }
         //printf("Thread unlocked (i.e. mutex locked)\n");
 
+#if 1
+        size_t N = nuad->D->n_beads;
+        float * X = calloc(3*N, sizeof(float));
+        float * Xm = calloc(3*N, sizeof(float));
+        float * g = calloc(3*N, sizeof(float));
+        uint8_t * u = calloc(N, sizeof(uint8_t));
+        size_t NL =  nuad->D->n_links;
+        uint32_t * L = calloc(2*NL, sizeof(uint32_t));
+
+        for(size_t kk = 0 ; kk<NL; kk++)
+        {
+            L[2*kk] = nuad->D->link_ids[2*kk];
+            L[2*kk+1] = nuad->D->link_ids[2*kk+1];
+        }
+
+        for(size_t kk = 0; kk < N; kk++)
+        {
+            X[3*kk] = nuad->D->beads[kk].x;
+            X[3*kk+1] = nuad->D->beads[kk].y;
+            X[3*kk+2] = nuad->D->beads[kk].z;
+            if(nuad->D->beads[kk].B > 0.5)
+            {
+                u[kk] = 1;
+            }
+            Xm[3*kk] = X[3*kk];
+            Xm[3*kk+1] = X[3*kk+1];
+            Xm[3*kk+2] = X[3*kk+2];
+        }
+        float dt = 0.01;
+
+        float Fdomain = 10;
+        float Flinks = 10;
+        float Fattraction = 40;
+
+        float w = 1e-6;
+        size_t it = 0;
+        while(nuad->brown > 0 && nuad->worker_quit == 0)
+        {
+            printf("\r %zu", it++); fflush(stdout);
+            w*=1.0001;
+            w > 1 ? w = 1 : 0;
+
+            /* 3. Update X */
+
+            // Brownian force
+
+            float Fb = 0.01*nuad->brown;
+            float r0 = nuad->D->beads[0].radius;
+            // printf("Fb=%f\n", Fb);
+            brownian_force(g, N, w*Fb);
+            steric_hindrance(X, g, N, 2.0*r0);
+            attraction(X, u, g, N, r0, 3.0*r0, w*Fattraction);
+            in_domain(g, X, N, r0, w*Fdomain);
+            links(g, L, NL, X, 3*r0, w*Flinks);
+
+            for(size_t pp = 0 ; pp < 3*N ; pp++)
+            {
+                double xt = X[pp];
+                X[pp] = X[pp] + 0.999*(X[pp] - Xm[pp]) - g[pp]*pow(dt,2);
+                Xm[pp] = xt; // Update Xm to reflect the previous X-value
+            }
+
+            for(size_t kk = 0; kk<N; kk++)
+            {
+                nuad->D->beads[kk].x = X[3*kk];
+                nuad->D->beads[kk].y = X[3*kk+1];
+                nuad->D->beads[kk].z = X[3*kk+2];
+            }
+
+            demo_data_update_link_data(nuad->D);
+            nua_data_changed(nua);
+        }
+
+        free(u);
+        free(X);
+        free(Xm);
+        free(g);
+        free(L);
+#else
+
         while(nuad->brown > 0 && nuad->worker_quit == 0)
         {
             nuad_wiggle_markers(nuad);
             nua_data_changed(nua);
         }
+#endif
 
         //printf("Locking thread\n");
         pthread_mutex_unlock(&nuad->worker_mutex);

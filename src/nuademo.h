@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "ovolhash.h"
+
 struct __attribute__((packed, aligned(__alignof__(float)))) bead_data
 {
     float x;
@@ -59,6 +61,9 @@ typedef struct
     nua_t * nua;
 
     float brown;
+
+    int yellow_blue;
+    float blue;
 
     int worker_quit;
     pthread_t worker_thread;
