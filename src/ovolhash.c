@@ -30,6 +30,10 @@ ovol_t * ovol_new(const size_t N, const ofloat rc)
 {
     assert(N > 0);
     ovol_t * ovol = calloc(1, sizeof(ovol_t));
+    if(ovol == NULL)
+    {
+        return NULL;
+    }
     ovol->N_construct = N;
     ovol->rc = rc;
     ovol->rc2 = pow(ovol->rc, 2);
@@ -47,6 +51,7 @@ ovol_t * ovol_new(const size_t N, const ofloat rc)
     ovol->bucket_size = 1;
     ovol->bucket_size = ceil(2.0*N/(ovol->nbin));
     ovol->bucket_size < 2 ? ovol->bucket_size = 2 : 0;
+    ovol->bucket_size *= 4;
     if(ovol->nbin*ovol->bucket_size < N)
     {
         printf("Creating room for %zu elements\n", N);

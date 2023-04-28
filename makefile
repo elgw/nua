@@ -3,7 +3,7 @@ CFLAGS=-Wall -Wextra -std=gnu11
 LDFLAGS=
 
 ifdef DEBUG
-CFLAGS+=-g3
+CFLAGS+=-g3 -fanalyzer
 else
 CFLAGS+=-O3 -march=native -mtune=native -DNDEBUG
 LDFLAGS+=-flto

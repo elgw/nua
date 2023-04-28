@@ -35,8 +35,8 @@ demo_data_t * demo_data_from_cmm(char * file)
         link_data_t * L = &D->links[ll];
         uint32_t id1 = cmm->links[ll].id1 - offset;
         uint32_t id2 = cmm->links[ll].id2 - offset;
-        assert(id1 < D->n_beads);
-        assert(id2 < D->n_beads);
+        assert(id1 < (uint32_t) D->n_beads);
+        assert(id2 < (uint32_t) D->n_beads);
         //printf("id1=%u, id2=%u\n", id1, id2); fflush(stdout);
         L->x1 = cmm->markers[id1].x;
         L->y1 = cmm->markers[id1].y;
@@ -92,6 +92,10 @@ demo_data_t * demo_data_new(int n_beads, int n_links)
         }
     }
     demo_data_t * D = calloc(1, sizeof(demo_data_t));
+    if(D == NULL)
+    {
+        return NULL;
+    }
     D->n_beads = n_beads;
     D->n_links = n_links;
     D->link_ids = malloc(2*n_links*sizeof(uint32_t));
@@ -215,6 +219,11 @@ void demo_data_to_cmm(demo_data_t * D, char * name)
 nuademo_t * nuademo_new(void)
 {
     nuademo_t * conf = calloc(1, sizeof(nuademo_t));
+    if(conf == NULL)
+    {
+        return NULL;
+    }
+
     conf->cmmdump = 0;
     conf->msaa_want = 8;
     conf->oneframe = 0;
@@ -264,8 +273,9 @@ void nuademo_help(nuademo_t * p)
 void set_yellow_blue(demo_data_t * D, float blue)
 {
     // Set the proportion blue beads to color blue
-    assert(blue <= 1);
-    assert(blue >= 0);
+    assert(D != NULL);
+    assert(blue <= 1.0);
+    assert(blue >= 0.0);
     for(size_t kk = 0; kk < (size_t) D->n_beads; kk++)
     {
         D->beads[kk].R = 1;
@@ -492,13 +502,17 @@ void nuademo_configure_nua(nuademo_t * nuad, nua_t * nua)
         printf("Transferring pointers to %d beads and %d links\n",
                nuad->D->n_beads, nuad->D->n_links);
     }
+    assert(nuad->D != NULL);
     assert(nuad->D->beads != NULL);
     assert(nuad->D->links != NULL);
 
     nua->nbeads = nuad->D->n_beads;
+
+
     nua->bead_data = (float*) nuad->D->beads;
 
     nua->nlinks = nuad->D->n_links;
+
     nua->link_data = (float*) nuad->D->links;
 
 #ifndef NDEBUG
@@ -607,7 +621,7 @@ void nuad_wiggle_markers(nuademo_t * nuad)
     return;
 }
 
-static float norm3(float * X)
+static float norm3(const float * X)
 {
     return sqrt(pow(X[0], 2)
                 + pow(X[1], 2)
@@ -615,7 +629,7 @@ static float norm3(float * X)
 }
 
 static float
-eudist3(float *A, float *B)
+eudist3(const float *A, const float *B)
 {
     return sqrt(
                 pow(A[0]-B[0],2)
@@ -624,9 +638,12 @@ eudist3(float *A, float *B)
 }
 
 
-void steric_hindrance(float * X, float * g, size_t N, float r0)
+void steric_hindrance(const float * restrict X, float * restrict g,
+                      const size_t N, // Nbeads
+                      const float r0, // Bead radius
+                      const float F) // Force
 {
-    float kVol = 1;
+
     ovol_t * ovol = ovol_new(N, r0);
 
     for(size_t kk = 0; kk< N; kk++)
@@ -651,11 +668,11 @@ void steric_hindrance(float * X, float * g, size_t N, float r0)
                 continue;
 
             float dx = nb[nn].x - X[3*kk];
-            g[3*kk] += kVol*2*(dx)*did;
+            g[3*kk] += F*2*(dx)*did;
             float dy = nb[nn].y - X[3*kk+1];
-            g[3*kk+1] += kVol*2*(dy)*did;
+            g[3*kk+1] += F*2*(dy)*did;
             float dz = nb[nn].z - X[3*kk+2];
-            g[3*kk+2] += kVol*2*(dz)*did;
+            g[3*kk+2] += F*2*(dz)*did;
         }
     }
     ovol_free(ovol);
@@ -733,6 +750,7 @@ in_domain(float * g, float * X, size_t N, float r0, float fDom)
         double r = norm3(X+kk*3);
         if(r > 1-r0)
         {
+            assert(fabs(r) > 0);
             double re = 2.0 / r * (r-(1-r0));
             for(int idx = 0; idx<3; idx++)
             {
@@ -751,7 +769,7 @@ links(float * g, uint32_t *L, size_t NL, float * X, float d0, float F)
 
         double d = eudist3(X+3*kk, X+3*ll);
 
-        if(d > d0 && d > 1e-6 && fabs(d-d0) > 1e-5)
+        if(d > d0 && d > 1e-6 && fabs(d) > 1e-5)
         {
             for(int idx = 0; idx<3; idx++)
             {
@@ -791,12 +809,18 @@ void * nuademo_calc_thread(void * data)
 
 #if 1
         size_t N = nuad->D->n_beads;
-        float * X = calloc(3*N, sizeof(float));
-        float * Xm = calloc(3*N, sizeof(float));
-        float * g = calloc(3*N, sizeof(float));
-        uint8_t * u = calloc(N, sizeof(uint8_t));
+        float * X = calloc(3*N+3, sizeof(float));
+        float * Xm = calloc(3*N+3, sizeof(float));
+        float * g = calloc(3*N+3, sizeof(float));
+        uint8_t * u = calloc(N+1, sizeof(uint8_t));
         size_t NL =  nuad->D->n_links;
-        uint32_t * L = calloc(2*NL, sizeof(uint32_t));
+        uint32_t * L = calloc(2*NL+2, sizeof(uint32_t));
+
+        if(X == NULL || Xm == NULL || g == NULL || u == NULL || L == NULL)
+        {
+            fprintf(stderr, "Memory allocation failure\n");
+            exit(EXIT_FAILURE);
+        }
 
         for(size_t kk = 0 ; kk<NL; kk++)
         {
@@ -821,14 +845,15 @@ void * nuademo_calc_thread(void * data)
 
         float Fdomain = 10;
         float Flinks = 10;
-        float Fattraction = 40;
+        float Fattraction = 20;
+        float Frepulsion = 40;
 
-        float w = 1e-6;
+        float w = 1e-4;
         size_t it = 0;
         while(nuad->brown > 0 && nuad->worker_quit == 0)
         {
             printf("\r %zu", it++); fflush(stdout);
-            w*=1.0001;
+            w*=1.01;
             w > 1 ? w = 1 : 0;
 
             /* 3. Update X */
@@ -839,7 +864,7 @@ void * nuademo_calc_thread(void * data)
             float r0 = nuad->D->beads[0].radius;
             // printf("Fb=%f\n", Fb);
             brownian_force(g, N, w*Fb);
-            steric_hindrance(X, g, N, 2.0*r0);
+            steric_hindrance(X, g, N, 2.0*r0, w*Frepulsion);
             attraction(X, u, g, N, r0, 3.0*r0, w*Fattraction);
             in_domain(g, X, N, r0, w*Fdomain);
             links(g, L, NL, X, 3*r0, w*Flinks);
@@ -932,6 +957,8 @@ int main(int argc, char ** argv)
     srand(time(NULL));
 
     nuademo_t * nuad = nuademo_new();
+    assert(nuad != NULL);
+
     nuademo_argparse(nuad, argc, argv);
 
     nua_t * nua = nua_new();
